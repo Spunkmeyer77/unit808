@@ -489,8 +489,9 @@ ExportPanel::ExportPanel (Unit808Processor& p) : proc (p)
     {
         auto start = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory).getChildFile (juce::File::createLegalFileName (name) + ".mid");
         chooser = std::make_unique<juce::FileChooser> ("Save MIDI file", start, "*.mid");
+        ExportPanel* self = this;   // (MSVC: no `this` inside the nested init-capture)
         chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
-                              [safe = juce::Component::SafePointer<ExportPanel> (this)] (const juce::FileChooser& fc)
+                              [safe = juce::Component::SafePointer<ExportPanel> (self)] (const juce::FileChooser& fc)
                               {
                                   if (safe == nullptr) return;
                                   auto f = fc.getResult();

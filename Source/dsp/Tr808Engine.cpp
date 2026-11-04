@@ -23,7 +23,7 @@ void Engine::reset() {
     for (auto& t : tom) t = {};
     for (auto& c : conga) c = {};
     for (auto& t : trig) t = 0;
-    lastCyTone = -1;
+    lastCyTone = -1; lastFilterKey = -1;
 }
 
 void Engine::trigger(Voice v, bool accent) {
@@ -49,7 +49,7 @@ void Engine::triggerVelocity(Voice v, int vel, int alt) {
 // ---------------- BD (codebox 0) ----------------
 double Engine::tickBD(double x) {
     if (x <= 0 && bd.pt <= 0 && std::abs(bd.y1) + std::abs(bd.y2) + std::abs(bd.ex) + std::abs(bd.lp) + std::abs(bd.hy) + bd.ck < 1e-9) return 0;   // asleep until the next hit
-    const double tune = 49.4, click = 0.01, drive = 1.0;
+    const double tune = P.bdTune, click = P.bdClick, drive = P.bdDrive;
     const double decay = dialMap(P.bdDecay, 12, 1500, 3), tone = P.bdTone;
     auto& s = bd;
     if (x > 0) { s.pt = 0.001 * sr; s.pa = x; s.fe = x; }
@@ -79,7 +79,7 @@ double Engine::tickBD(double x) {
 // ---------------- SD (codebox 1) ----------------
 double Engine::tickSD(double x) {
     if (x <= 0 && std::abs(sd.a1) + std::abs(sd.a2) + std::abs(sd.b1) + std::abs(sd.b2) + sd.ne < 1e-9) return 0;
-    const double tune = 1.0, decay = 0.73, tone = P.sdTone, snappy = P.sdSnappy;
+    const double tune = P.sdTune, decay = P.sdDecay, tone = P.sdTone, snappy = P.sdSnappy;
     auto& s = sd;
     double wa = TWOPI * 172 * tune / sr, ra = EXP_(-1.0 / ((0.028 * decay) * sr));
     double ya = 2 * ra * COS_(wa) * s.a1 - ra * ra * s.a2 + x * SIN_(wa); s.a2 = s.a1; s.a1 = ya;
@@ -125,7 +125,7 @@ double Engine::tickTom(TomState& s, double x, double tune, double decay, double 
 // ---------------- RS (codebox 5) ----------------
 double Engine::tickRS(double x) {
     if (x <= 0 && std::abs(rs.a1) + std::abs(rs.b1) + rs.ea + rs.ev + std::abs(rs.hy2) + std::abs(rs.hy) < 1e-9) return 0;
-    const double tune = 1.0, decay = 1.0;
+    const double tune = P.rsTune, decay = P.rsDecay;
     auto& s = rs;
     double wa = TWOPI * 455 * tune / sr, ra = EXP_(-1.0 / ((0.06) * sr));
     double ya = 2 * ra * COS_(wa) * s.a1 - ra * ra * s.a2 + x * SIN_(wa); s.a2 = s.a1; s.a1 = ya;
@@ -144,7 +144,7 @@ double Engine::tickRS(double x) {
 // ---------------- CL (codebox 12) ----------------
 double Engine::tickCL(double x) {
     if (x <= 0 && cl.pt <= 0 && std::abs(cl.y1) + std::abs(cl.y2) + cl.ex + cl.ex2 < 1e-9) return 0;
-    const double tune = 1.0, decay = 1.0;
+    const double tune = P.clTune, decay = P.clDecay;
     auto& s = cl;
     if (x > 0) { s.pt = 0.001 * sr; s.pa = x; }
     double p = s.pt > 0 ? s.pa : 0;
@@ -160,7 +160,7 @@ double Engine::tickCL(double x) {
 
 // ---------------- CP (codebox 6) ----------------
 double Engine::tickCP(double x) {
-    const double tone = 1300, decay = 60;
+    const double decay = P.cpDecay;
     auto& s = cp;
     if (x > 0) { s.t = 0; s.amp = x; } else s.t = std::min(s.t + 1, 10000000.0);
     double ms = s.t * 1000 / sr;
@@ -192,7 +192,7 @@ double Engine::tickMA(double x) {
 // ---------------- CB (codebox 7) ----------------
 double Engine::tickCB(double x) {
     if (x <= 0 && cb.e1 + cb.e2 < 1e-9) { cb.a.ph += 540 / sr; cb.a.ph -= std::floor(cb.a.ph); cb.b.ph += 800 / sr; cb.b.ph -= std::floor(cb.b.ph); return 0; }
-    const double tune = 1.0, decay = 97;
+    const double tune = P.cbTune, decay = P.cbDecay;
     auto& s = cb;
     if (x > 0) { s.e1 = x; s.e2 = x; }
     else { s.e1 = s.e1 * EXP_(-1.0 / ((0.012) * sr)); s.e2 = s.e2 * EXP_(-1.0 / ((decay * 0.001) * sr)); }
@@ -205,7 +205,7 @@ double Engine::tickCB(double x) {
 // The device sums CH and OH before two linear high-pass filters; here each has its own
 // identical filter pair so the panel can give them separate levels (same sound).
 void Engine::tickMetal(double in1, double in2, double in3, double& chOut, double& ohOut, double& cyOut) {
-    const double chdecay = 24, hattone = 1, hattune = 1, cytune = 1;
+    const double chdecay = P.chDecay, hattune = P.hhTune, cytune = P.cyTune;
     const double ohdecay = dialMap(P.ohDecay, 25, 1000, 2);
     const double cydecay = dialMap(P.cyDecay, 50, 2000, 2);
     static const double F[6] = { 205.3, 304.4, 369.6, 522.7, 540, 800 };
@@ -239,11 +239,18 @@ void Engine::tickMetal(double in1, double in2, double in3, double& chOut, double
 // (The codeboxes recompute them every sample; with constant inputs that gives the same values.)
 void Engine::updateFilters() {
     sd.h1.hp(1200, 0.7, sr); sd.h2.hp(1200, 0.7, sr);
-    cp.bp.bp(1300, 0.8, sr); cp.hp.hp(700, 0.7, sr);
     ma.hp.hp(5200, 0.9, sr);
-    cb.bp.bp(1000, 1, sr);
-    mt.f1.bp(8500, 0.8, sr);
-    mt.f2c.hp(6500, 0.7, sr); mt.f3c.hp(6500, 0.7, sr); mt.f2o.hp(6500, 0.7, sr); mt.f3o.hp(6500, 0.7, sr);
+    cp.hp.hp(700, 0.7, sr);
+    // trimmer-dependent: CP TONE, CB TUNE, HH TONE (recomputed only when they change)
+    const double key = P.cpTone * 1e-3 + P.cbTune * 7.0 + P.hhTone * 131.0;
+    if (key != lastFilterKey) {
+        cp.bp.bp(P.cpTone, 0.8, sr);
+        cb.bp.bp(1000 * P.cbTune, 1, sr);
+        mt.f1.bp(8500 * P.hhTone, 0.8, sr);
+        mt.f2c.hp(6500 * P.hhTone, 0.7, sr); mt.f3c.hp(6500 * P.hhTone, 0.7, sr);
+        mt.f2o.hp(6500 * P.hhTone, 0.7, sr); mt.f3o.hp(6500 * P.hhTone, 0.7, sr);
+        lastFilterKey = key;
+    }
     const double cytone = dialMap(P.cyTone, 0.6f, 1.6f);
     if (cytone != lastCyTone) {
         mt.f4.bp(8000 * cytone, 1.0, sr); mt.f5.hp(3000 * cytone, 0.7, sr);
@@ -281,8 +288,8 @@ void Engine::render(float* mix, int n, float* const* outs) {
         for (int t = 0; t < 3; ++t) {
             const R& rt = tomR[t]; const R& rc = conR[t];
             double xt = congaActive[t] ? 0 : x[LT + t], xc = congaActive[t] ? x[LT + t] : 0;
-            double a = tickTom(tom[t], xt, dialMap(tunes[t], rt.lo, rt.hi), rt.decay, 0.03, 0.02);
-            double b = tickTom(conga[t], xc, dialMap(tunes[t], rc.lo, rc.hi), rc.decay, 0.03, 0.0);
+            double a = tickTom(tom[t], xt, dialMap(tunes[t], rt.lo, rt.hi), P.tomDecay[t], P.tomBend[t], 0.02);
+            double b = tickTom(conga[t], xc, dialMap(tunes[t], rc.lo, rc.hi), P.congaDecay[t], P.congaBend[t], 0.0);
             v[LT + t] = a + b;    // both keep ringing out naturally when the switch flips
         }
         v[RS] = tickRS(rsClavesActive ? 0 : x[RS]) + tickCL(rsClavesActive ? x[RS] : 0);

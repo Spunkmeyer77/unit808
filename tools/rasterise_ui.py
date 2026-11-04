@@ -19,7 +19,7 @@ def viewbox(svg):
     m = re.search(r'viewBox="([^"]+)"', svg)
     return [float(v) for v in m.group(1).replace(",", " ").split()]
 
-jobs = [("faceplate", (SRC / "TR808_faceplate.svg").read_text()), ("brand", (SRC / "brand.svg").read_text())]
+jobs = [("faceplate", (SRC / "TR808_faceplate.svg").read_text()), ("brand", (SRC / "brand.svg").read_text()), ("board", (SRC / "board.svg").read_text())]
 for f in sorted((SRC / "assets").glob("*.svg")):
     jobs.append((f.stem, f.read_text()))
 
@@ -39,6 +39,11 @@ with sync_playwright() as p:
         page.close()
     b.close()
 
+# the board has no transparency: ship it as a high-quality JPEG (much smaller than PNG)
+from PIL import Image
+Image.open(OUT / "board.png").convert("RGB").save(OUT / "board.jpg", quality=93, subsampling=0)
+(OUT / "board.png").unlink()
+
 # ---------------------------------------------------------------- Layout.h
 L = json.loads((SRC / "control_layout.json").read_text())
 cw, ch = L["canvas"]["width"], L["canvas"]["height"]
@@ -52,6 +57,16 @@ def art(stem):
     return f'{{ "{png_name(stem).replace(".", "_")}", {float(x)}f, {float(y)}f, {float(w)}f, {float(h)}f }}'
 lines.append(f"constexpr Art kFaceplate = {art('faceplate')};")
 lines.append(f"constexpr Art kBrand = {art('brand')};")
+lines.append(f"constexpr Art kBoard = {art('board').replace('board_png', 'board_jpg')};")
+B = json.loads((SRC / "board_layout.json").read_text())
+lines.append("struct Pad { const char* id; const char* label; float cx, cy, size; };   // trimmer pads on the board inside")
+lines.append(f"constexpr int kNumPads = {len(B['pads'])};")
+lines.append("constexpr Pad kPads[kNumPads] = {")
+for pd in B["pads"]:
+    lines.append(f'    {{ "{pd["id"]}", "{pd["label"]}", {float(pd["cx"])}f, {float(pd["cy"])}f, {float(pd["size"])}f }},')
+lines.append("};")
+pl = B["plate"]
+lines.append(f"constexpr float kPlateX = {float(pl['x'])}f, kPlateY = {float(pl['y'])}f, kPlateW = {float(pl['width'])}f, kPlateH = {float(pl['height'])}f;")
 lines.append("struct Ctrl { const char* id; const char* type; float cx, cy, r, x, y, w, h; int positions; Art a[4]; int nDetents; float detents[12]; float defaultAngle; };")
 ctrls = []
 for c in L["controls"]:

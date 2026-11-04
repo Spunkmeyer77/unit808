@@ -332,15 +332,32 @@ int main (int argc, char** argv)
         check (pk > 0.05f, "MIDI notes play the sounds");
     }
 
-    // ---- power off mutes
-    setParam ("power", 0.0f);
+    // ---- the board inside: 29 trimmers, defaults = the device's sound, and they change it
     {
-        juce::MidiBuffer m; m.addEvent (juce::MidiMessage::noteOn (10, 38, (juce::uint8) 127), 0);
-        rec.clear(); run (20, &m);
-        float pk = 0; for (float v : rec) pk = juce::jmax (pk, std::abs (v));
-        check (pk == 0.0f, "power off: no sound");
+        check (P::kNumTrims == 29, "29 trimmers on the board");
+        bool allThere = true;
+        for (int i = 0; i < P::kNumTrims; ++i) allThere &= proc.apvts.getParameter (P::trimId (i).toRawUTF8()) != nullptr;
+        check (allThere, "every trimmer is a parameter (automatable, saved with the project)");
+        auto bdRender = [&] ()
+        {
+            for (int i = 1; i < 12; ++i) setParam (P::muteId (i).toRawUTF8(), i == 1 ? 0.0f : 1.0f);
+            host.playing = false; run (blocksPerBar * 2);
+            juce::MidiBuffer m; m.addEvent (juce::MidiMessage::noteOn (10, 36, (juce::uint8) 127), 0);
+            rec.clear(); run (100, &m);
+            std::vector<float> r = rec;
+            for (int i = 1; i < 12; ++i) setParam (P::muteId (i).toRawUTF8(), 0.0f);
+            return r;
+        };
+        const auto a = bdRender();
+        setParam ("t-bd-tune", 60.0f);
+        const auto b = bdRender();
+        setParam ("t-bd-tune", 49.4f);
+        double diff = 0; for (size_t i = 0; i < juce::jmin (a.size(), b.size()); ++i) diff = juce::jmax (diff, (double) std::abs (a[i] - b[i]));
+        check (diff > 0.05, "BD TUNE trimmer changes the bass drum");
+        const auto c = bdRender();
+        double same = 0; for (size_t i = 0; i < juce::jmin (a.size(), c.size()); ++i) same = juce::jmax (same, (double) std::abs (a[i] - c[i]));
+        check (same < 1e-6, "back at its default the bass drum sounds as before");
     }
-    setParam ("power", 1.0f);
 
     // ---- state round trip
     {
@@ -408,6 +425,12 @@ int main (int argc, char** argv)
         juce::PNGImageFormat png;
         if (auto os = std::unique_ptr<juce::OutputStream> (f.createOutputStream())) png.writeImageToStream (img, *os);
         setParam ("mute-cb", 0.0f); setParam ("solo-sd", 0.0f);
+        // the board inside, as POWER opens it
+        if (auto* e8 = dynamic_cast<Unit808Editor*> (ed.get())) e8->showBoard (true);
+        auto bimg = ed->createComponentSnapshot (ed->getLocalBounds(), true, 1.0f);
+        auto bf = outDir.getChildFile ("editor_board.png");
+        bf.deleteFile();
+        if (auto os = std::unique_ptr<juce::OutputStream> (bf.createOutputStream())) png.writeImageToStream (bimg, *os);
     }
 
     std::printf ("\n%s (%d failure%s)\n", failures == 0 ? "ALL PASSED" : "FAILED", failures, failures == 1 ? "" : "s");

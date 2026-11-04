@@ -6,6 +6,41 @@ constexpr float kImageScale = 2.0f;
 struct Art { const char* res; float x, y, w, h; };   // BinaryData resource and its place on the panel
 constexpr Art kFaceplate = { "faceplate_png", 0.0f, 0.0f, 1870.0f, 1090.0f };
 constexpr Art kBrand = { "brand_png", 1290.0f, 92.0f, 499.0f, 109.0f };
+constexpr Art kBoard = { "board_jpg", 0.0f, 0.0f, 1870.0f, 1090.0f };
+struct Pad { const char* id; const char* label; float cx, cy, size; };   // trimmer pads on the board inside
+constexpr int kNumPads = 29;
+constexpr Pad kPads[kNumPads] = {
+    { "bd-tune", "TUNE", 445.0f, 168.0f, 44.0f },
+    { "bd-click", "CLICK", 545.0f, 168.0f, 44.0f },
+    { "bd-drive", "DRIVE", 495.0f, 283.0f, 44.0f },
+    { "sd-tune", "TUNE", 700.0f, 168.0f, 44.0f },
+    { "sd-decay", "DECAY", 700.0f, 283.0f, 44.0f },
+    { "lt-tom-decay", "TOM DECAY", 860.0f, 168.0f, 44.0f },
+    { "lt-tom-bend", "TOM BEND", 980.0f, 168.0f, 44.0f },
+    { "lt-conga-decay", "CONGA DECAY", 860.0f, 283.0f, 44.0f },
+    { "lt-conga-bend", "CONGA BEND", 980.0f, 283.0f, 44.0f },
+    { "mt-tom-decay", "TOM DECAY", 1115.0f, 168.0f, 44.0f },
+    { "mt-tom-bend", "TOM BEND", 1235.0f, 168.0f, 44.0f },
+    { "mt-conga-decay", "CONGA DECAY", 1115.0f, 283.0f, 44.0f },
+    { "mt-conga-bend", "CONGA BEND", 1235.0f, 283.0f, 44.0f },
+    { "ht-tom-decay", "TOM DECAY", 1370.0f, 168.0f, 44.0f },
+    { "ht-tom-bend", "TOM BEND", 1490.0f, 168.0f, 44.0f },
+    { "ht-conga-decay", "CONGA DECAY", 1370.0f, 283.0f, 44.0f },
+    { "ht-conga-bend", "CONGA BEND", 1490.0f, 283.0f, 44.0f },
+    { "rs-tune", "RS TUNE", 130.0f, 510.0f, 44.0f },
+    { "rs-decay", "RS DECAY", 280.0f, 510.0f, 44.0f },
+    { "cl-tune", "CL TUNE", 130.0f, 640.0f, 44.0f },
+    { "cl-decay", "CL DECAY", 280.0f, 640.0f, 44.0f },
+    { "cp-tone", "TONE", 445.0f, 525.0f, 44.0f },
+    { "cp-decay", "DECAY", 545.0f, 525.0f, 44.0f },
+    { "cb-tune", "TUNE", 670.0f, 525.0f, 44.0f },
+    { "cb-decay", "DECAY", 770.0f, 525.0f, 44.0f },
+    { "cy-tune", "TUNE", 925.0f, 525.0f, 44.0f },
+    { "hh-tune", "TUNE", 1085.0f, 525.0f, 44.0f },
+    { "hh-tone", "TONE", 1187.0f, 525.0f, 44.0f },
+    { "ch-decay", "CH DECAY", 1289.0f, 525.0f, 44.0f },
+};
+constexpr float kPlateX = 35.0f, kPlateY = 35.0f, kPlateW = 335.0f, kPlateH = 315.0f;
 struct Ctrl { const char* id; const char* type; float cx, cy, r, x, y, w, h; int positions; Art a[4]; int nDetents; float detents[12]; float defaultAngle; };
 constexpr int kNumCtrls = 77;
 constexpr Ctrl kCtrls[kNumCtrls] = {

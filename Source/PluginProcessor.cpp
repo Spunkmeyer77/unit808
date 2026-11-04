@@ -28,6 +28,24 @@ constexpr int kAutoFill[6] = { 0, 16, 12, 8, 4, 2 };
 juce::String tenths (float v, int) { return juce::String (v * 10.0f, 1); }
 } // namespace
 
+// The board inside: the UNIT 808 device's controls that are not on the front panel, in its own ranges.
+// skew 0.5 = the device's exponent 2 dials. Defaults = the device's defaults (the sound of v0.3).
+const Unit808Processor::TrimDef Unit808Processor::kTrims[kNumTrims] = {
+    { "bd-tune", "BD Tune", 40, 65, 49.4f, 1, "Hz" }, { "bd-click", "BD Click", 0, 1, 0.01f, 1, "" }, { "bd-drive", "BD Drive", 1, 6, 1, 1, "" },
+    { "sd-tune", "SD Tune", 0.8f, 1.25f, 1, 1, "x" }, { "sd-decay", "SD Decay", 0.5f, 2, 0.73f, 1, "x" },
+    { "lt-tom-decay", "LT Tom Decay", 20, 400, 95, 0.5f, "ms" }, { "lt-tom-bend", "LT Tom Bend", 0, 0.5f, 0.03f, 1, "" },
+    { "lt-conga-decay", "LC Conga Decay", 20, 400, 86, 0.5f, "ms" }, { "lt-conga-bend", "LC Conga Bend", 0, 0.5f, 0.03f, 1, "" },
+    { "mt-tom-decay", "MT Tom Decay", 20, 400, 70, 0.5f, "ms" }, { "mt-tom-bend", "MT Tom Bend", 0, 0.5f, 0.03f, 1, "" },
+    { "mt-conga-decay", "MC Conga Decay", 20, 400, 44, 0.5f, "ms" }, { "mt-conga-bend", "MC Conga Bend", 0, 0.5f, 0.03f, 1, "" },
+    { "ht-tom-decay", "HT Tom Decay", 20, 400, 48, 0.5f, "ms" }, { "ht-tom-bend", "HT Tom Bend", 0, 0.5f, 0.03f, 1, "" },
+    { "ht-conga-decay", "HC Conga Decay", 20, 400, 38, 0.5f, "ms" }, { "ht-conga-bend", "HC Conga Bend", 0, 0.5f, 0.03f, 1, "" },
+    { "rs-tune", "RS Tune", 0.7f, 1.4f, 1, 1, "x" }, { "rs-decay", "RS Decay", 0.5f, 3, 1, 1, "x" },
+    { "cl-tune", "CL Tune", 0.7f, 1.4f, 1, 1, "x" }, { "cl-decay", "CL Decay", 0.5f, 3, 1, 1, "x" },
+    { "cp-tone", "CP Tone", 600, 5000, 1300, 1, "Hz" }, { "cp-decay", "CP Decay", 10, 300, 60, 0.5f, "ms" },
+    { "cb-tune", "CB Tune", 0.5f, 2, 1, 1, "x" }, { "cb-decay", "CB Decay", 50, 1200, 97, 1, "ms" },
+    { "cy-tune", "CY Tune", 0.5f, 2, 1, 1, "x" },
+    { "hh-tune", "HH Tune", 0.5f, 2, 1, 1, "x" }, { "hh-tone", "HH Tone", 0.6f, 1.6f, 1, 1, "x" }, { "ch-decay", "CH Decay", 5, 100, 24, 1, "ms" } };
+
 const char* const Unit808Processor::kInstrumentNames[kNumRows] = { "AC", "BD", "SD", "LT", "MT", "HT", "RS", "CP", "CB", "CY", "OH", "CH" };
 
 juce::AudioProcessorValueTreeState::ParameterLayout Unit808Processor::createLayout()
@@ -61,7 +79,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout Unit808Processor::createLayo
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "basic-variation", 1 }, "Basic Variation", juce::StringArray { "A", "AB", "B" }, 0));
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "if-variation", 1 }, "I/F Variation", juce::StringArray { "A", "B" }, 0));
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "pre-scale", 1 }, "Pre-Scale", juce::StringArray { "1", "2", "3", "4" }, 2));
-    l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { "power", 1 }, "Power", true));
+    for (auto& t : kTrims)
+    {
+        juce::NormalisableRange<float> r (t.lo, t.hi);
+        r.skew = t.skew;
+        const juce::String unit = t.unit;
+        l.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { juce::String ("t-") + t.pad, 1 }, juce::String ("Trim ") + t.name, r, t.def,
+            juce::AudioParameterFloatAttributes().withStringFromValueFunction ([unit] (float v, int)
+            {
+                if (unit == "x")  return juce::String (v, 2) + " x";
+                if (unit == "ms") return juce::String (juce::roundToInt (v)) + " ms";
+                if (unit == "Hz") return juce::String (v, v < 100 ? 1 : 0) + " Hz";
+                return juce::String (v, 2);
+            })));
+    }
     l.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { "standalone-bpm", 1 }, "Standalone Tempo",
                                                         juce::NormalisableRange<float> (40.0f, 300.0f, 0.1f), 120.0f,
                                                         juce::AudioParameterFloatAttributes().withStringFromValueFunction (
@@ -78,7 +109,8 @@ Unit808Processor::Unit808Processor()
     for (int i = 0; i < 5; ++i) raw.sw[i] = p (kSwitchIds[i]);
     raw.mode = p ("mode"); raw.instrument = p ("instrument-select"); raw.autoFill = p ("auto-fill");
     raw.basicVar = p ("basic-variation"); raw.fillVar = p ("if-variation"); raw.preScale = p ("pre-scale");
-    raw.power = p ("power"); raw.swing = p ("swing"); raw.flam = p ("flam");
+    for (int i = 0; i < kNumTrims; ++i) raw.trim[i] = apvts.getRawParameterValue (trimId (i));
+    raw.swing = p ("swing"); raw.flam = p ("flam");
     for (int i = 0; i < kNumRows; ++i)
     {
         raw.mute[i] = apvts.getRawParameterValue (muteId (i));
@@ -114,6 +146,15 @@ void Unit808Processor::pullParams()
     P.rsLevel = k (13); P.cpLevel = k (14); P.cbLevel = k (15);
     P.cyLevel = k (16); P.cyTone = k (17); P.cyDecay = k (18);
     P.ohLevel = k (19); P.ohDecay = k (20); P.chLevel = k (21); P.master = k (22);
+    auto t = [this] (int i) { return raw.trim[i]->load(); };
+    P.bdTune = t (0); P.bdClick = t (1); P.bdDrive = t (2); P.sdTune = t (3); P.sdDecay = t (4);
+    for (int d = 0; d < 3; ++d)
+    {
+        P.tomDecay[d] = t (5 + d * 4); P.tomBend[d] = t (6 + d * 4); P.congaDecay[d] = t (7 + d * 4); P.congaBend[d] = t (8 + d * 4);
+    }
+    P.rsTune = t (17); P.rsDecay = t (18); P.clTune = t (19); P.clDecay = t (20);
+    P.cpTone = t (21); P.cpDecay = t (22); P.cbTune = t (23); P.cbDecay = t (24); P.cyTune = t (25);
+    P.hhTune = t (26); P.hhTone = t (27); P.chDecay = t (28);
     P.ltConga = s (0); P.mtConga = s (1); P.htConga = s (2); P.rsClaves = s (3); P.cpMaracas = s (4);
     engine.setParams (P);
 }
@@ -553,8 +594,7 @@ void Unit808Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     renderTo (numSamples);
     lastQ = q0 + numSamples * sps;
 
-    if (! isPowerOn()) buffer.clear();
-    else if (right) std::copy (left, left + numSamples, right);
+    if (right) std::copy (left, left + numSamples, right);
 }
 
 // ---- state: parameters + rhythm memory + tracks ---------------------------------------------------

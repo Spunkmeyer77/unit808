@@ -30,6 +30,17 @@ struct Params {
     float ohLevel = 0.45f, ohDecay = 0.559f;
     float chLevel = 0.45f;
     float master = 0.8f;                      // 0.8 = unity (same level as the M4L device)
+
+    // ---- internal trimmers (the board inside), in the M4L device's own units; defaults = the device's
+    float bdTune = 49.4f, bdClick = 0.01f, bdDrive = 1.0f;          // Hz, 0..1, 1..6
+    float sdTune = 1.0f, sdDecay = 0.73f;                            // x, x
+    float tomDecay[3] = { 95, 70, 48 }, tomBend[3] = { 0.03f, 0.03f, 0.03f };      // ms, 0..0.5
+    float congaDecay[3] = { 86, 44, 38 }, congaBend[3] = { 0.03f, 0.03f, 0.03f };
+    float rsTune = 1.0f, rsDecay = 1.0f, clTune = 1.0f, clDecay = 1.0f;             // x
+    float cpTone = 1300, cpDecay = 60;                               // Hz, ms
+    float cbTune = 1.0f, cbDecay = 97;                               // x, ms
+    float cyTune = 1.0f;                                             // x
+    float hhTune = 1.0f, hhTone = 1.0f, chDecay = 24;                // x, x, ms
 };
 
 // Same mapping as a live.dial with an exponent: min + (max-min) * x^exp.
@@ -91,7 +102,7 @@ private:
         BiquadDF1 f1, f2c, f3c, f2o, f3o, f4, f5, f6, f7;
     } mt;
 
-    double lastCyTone = -1;
+    double lastCyTone = -1, lastFilterKey = -1;
     void updateFilters();
     double tickBD(double x);
     double tickSD(double x);

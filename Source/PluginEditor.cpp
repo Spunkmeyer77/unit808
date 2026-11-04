@@ -236,6 +236,137 @@ void Key::paint (juce::Graphics& g)
     }
 }
 
+// ---------------------------------------------------------------------------------------------- Trimmers (as Unit 606)
+TrimmerLookAndFeel::TrimmerLookAndFeel()
+{
+    setColour (juce::BubbleComponent::backgroundColourId, juce::Colour (0xff1a1712));
+    setColour (juce::TooltipWindow::textColourId, juce::Colours::white);
+}
+
+void TrimmerLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, int h, float pos, float start, float end, juce::Slider&)
+{
+    const auto area = juce::Rectangle<int> (x, y, w, h).toFloat();
+    const auto c = area.getCentre();
+    const float s = juce::jmin (area.getWidth(), area.getHeight());
+    auto body = juce::Rectangle<float> (s * 0.82f, s * 0.82f).withCentre (c);
+    g.setColour (juce::Colours::black.withAlpha (0.45f));
+    g.fillRoundedRectangle (body.translated (s * 0.05f, s * 0.07f), 2.0f);
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xff4f7fc2), body.getX(), body.getY(), juce::Colour (0xff1d3b6b), body.getRight(), body.getBottom(), false));
+    g.fillRoundedRectangle (body, 2.0f);
+    g.setColour (juce::Colour (0xff0f1d33));
+    g.drawRoundedRectangle (body, 2.0f, 1.0f);
+    g.setColour (juce::Colours::white.withAlpha (0.35f));
+    g.drawLine (body.getX() + 2, body.getY() + 1.2f, body.getRight() - 2, body.getY() + 1.2f, 1.0f);
+    const float r = s * 0.3f;
+    juce::ColourGradient rotor (juce::Colour (0xfffbf0c8), c.x - r * 0.5f, c.y - r * 0.6f, juce::Colour (0xff8a6a26), c.x + r, c.y + r, true);
+    rotor.addColour (0.45, juce::Colour (0xffd8b866));
+    g.setGradientFill (rotor);
+    g.fillEllipse (juce::Rectangle<float> (r * 2, r * 2).withCentre (c));
+    g.setColour (juce::Colour (0xff4a3810));
+    g.drawEllipse (juce::Rectangle<float> (r * 2, r * 2).withCentre (c), 1.0f);
+    const float a = start + pos * (end - start);
+    juce::Path slot;
+    slot.addRoundedRectangle (-r * 0.85f, -r * 0.13f, r * 1.7f, r * 0.26f, r * 0.1f);
+    g.setColour (juce::Colour (0xff2a1e08));
+    g.fillPath (slot, juce::AffineTransform::rotation (a - juce::MathConstants<float>::halfPi).translated (c));
+    g.setColour (juce::Colours::white.withAlpha (0.85f));
+    g.fillEllipse (juce::Rectangle<float> (r * 0.3f, r * 0.3f).withCentre (c.getPointOnCircumference (r * 0.62f, a)));
+}
+
+void TrimmerLookAndFeel::drawBubble (juce::Graphics& g, juce::BubbleComponent&, const juce::Point<float>&, const juce::Rectangle<float>& body)
+{
+    g.setColour (juce::Colour (0xff1a1712));
+    g.fillRoundedRectangle (body, 3.0f);
+    g.setColour (juce::Colours::black);
+    g.drawRoundedRectangle (body.reduced (0.5f), 3.0f, 1.0f);
+}
+
+juce::Font TrimmerLookAndFeel::getSliderPopupFont (juce::Slider&)
+{
+    return juce::Font (juce::FontOptions (juce::Font::getDefaultMonospacedFontName(), 16.0f, juce::Font::bold));
+}
+
+// ---------------------------------------------------------------------------------------------- Menus (double size)
+MenuLookAndFeel::MenuLookAndFeel()
+{
+    setColour (juce::PopupMenu::backgroundColourId, juce::Colour (0xff2b2e2e));
+    setColour (juce::PopupMenu::textColourId, kCream);
+    setColour (juce::PopupMenu::headerTextColourId, kOrange);
+    setColour (juce::PopupMenu::highlightedBackgroundColourId, kOrange);
+    setColour (juce::PopupMenu::highlightedTextColourId, juce::Colour (0xff1c1e1e));
+}
+
+juce::Font MenuLookAndFeel::getPopupMenuFont() { return juce::Font (juce::FontOptions (30.0f)); }
+
+void MenuLookAndFeel::getIdealPopupMenuItemSize (const juce::String& text, bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight)
+{
+    LookAndFeel_V4::getIdealPopupMenuItemSize (text, isSeparator, standardMenuItemHeight, idealWidth, idealHeight);
+    if (! isSeparator) idealHeight = juce::jmax (idealHeight, 48);
+    idealWidth += 40;
+}
+
+void MenuLookAndFeel::drawPopupMenuSectionHeader (juce::Graphics& g, const juce::Rectangle<int>& area, const juce::String& name)
+{
+    g.setFont (juce::Font (juce::FontOptions (30.0f, juce::Font::bold)));
+    g.setColour (findColour (juce::PopupMenu::headerTextColourId));
+    g.drawFittedText (name, area.getX() + 24, area.getY(), area.getWidth() - 32, area.getHeight(), juce::Justification::bottomLeft, 1);
+}
+
+// ---------------------------------------------------------------------------------------------- Board inside
+BoardView::BoardView (Unit808Processor& p)
+{
+    board = image (kBoard);
+    setOpaque (true);
+    for (auto& pad : kPads)
+    {
+        int idx = -1;
+        for (int i = 0; i < Unit808Processor::kNumTrims; ++i) if (juce::String (Unit808Processor::kTrims[i].pad) == pad.id) idx = i;
+        if (idx < 0) continue;
+        auto s = std::make_unique<juce::Slider> (juce::Slider::RotaryVerticalDrag, juce::Slider::NoTextBox);
+        s->setLookAndFeel (&lnf);
+        s->setRotaryParameters (kPi * 1.25f, kPi * 2.75f, true);
+        s->setMouseDragSensitivity (260);
+        s->setScrollWheelEnabled (false);
+        s->setPopupDisplayEnabled (true, true, this, 900);
+        s->setMouseCursor (juce::MouseCursor::PointingHandCursor);
+        s->setBounds (juce::Rectangle<float> (pad.size + 10.0f, pad.size + 10.0f).withCentre ({ pad.cx, pad.cy }).toNearestInt());
+        addAndMakeVisible (*s);
+        const auto id = Unit808Processor::trimId (idx);
+        atts.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (p.apvts, id, *s));
+        auto* prm = p.apvts.getParameter (id);
+        s->setDoubleClickReturnValue (true, (double) prm->convertFrom0to1 (prm->getDefaultValue()));
+        trims.push_back (std::move (s));
+    }
+}
+
+BoardView::~BoardView() { for (auto& t : trims) t->setLookAndFeel (nullptr); }
+
+void BoardView::paint (juce::Graphics& g)
+{
+    g.setImageResamplingQuality (juce::Graphics::highResamplingQuality);
+    g.drawImage (board, getLocalBounds().toFloat());
+}
+
+void BoardView::mouseUp (const juce::MouseEvent& e)
+{
+    if (juce::Rectangle<float> (kPlateX, kPlateY, kPlateW, kPlateH).contains (e.position) && onClose) onClose();
+}
+
+PowerSwitch::PowerSwitch (const Ctrl& c) : ctrl (c)
+{
+    off = image (c.a[0]); on = image (c.a[1]);
+    auto r = juce::Rectangle<float> (c.x, c.y, c.w, c.h);
+    for (int i = 0; i < 2; ++i) r = r.getUnion ({ c.a[i].x, c.a[i].y, c.a[i].w, c.a[i].h });
+    setBounds (r.getSmallestIntegerContainer());
+    setMouseCursor (juce::MouseCursor::PointingHandCursor);
+}
+
+void PowerSwitch::paint (juce::Graphics& g)
+{
+    const int i = showingBoard ? 0 : 1;
+    drawAt (g, i == 0 ? off : on, ctrl.a[i], { (float) getX(), (float) getY() });
+}
+
 // ---------------------------------------------------------------------------------------------- About
 AboutOverlay::AboutOverlay()
 {
@@ -420,8 +551,7 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
         { "cp-select", false, { 1, 0 }, "Hand Clap (down) / Maracas (up)" },
         { "pre-scale", false, { 0, 1, 2, 3 }, "PRE-SCALE: 1 = 16th triplets, 2 = 32nd notes, 3 = 16th notes (normal), 4 = 8th triplets" },
         { "basic-variation", true, { 0, 1, 2 }, "BASIC VARIATION: A, A then B, or B" },
-        { "if-variation", true, { 0, 1 }, "I/F VARIATION: which variation of the intro/fill pattern plays" },
-        { "power", false, { 0, 1 }, "Power: off mutes the output" } };
+        { "if-variation", true, { 0, 1 }, "I/F VARIATION: which variation of the intro/fill pattern plays" } };
     for (auto& s : sd)
     {
         auto w = std::make_unique<Switch> (*find (s.id), *proc.apvts.getParameter (s.id), s.horiz, s.map);
@@ -462,9 +592,19 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
     auto led = [] (const char* id) { const Ctrl* c = find (id); return Led { c, image (c->a[0]), image (c->a[1]) }; };
     varA = led ("var-a-led"); varB = led ("var-b-led"); part1 = led ("part1-led"); part2 = led ("part2-led");
 
+    // POWER opens the circuit board inside (UNIT808 keeps playing); the plate on the board, or POWER again, closes it
+    power = std::make_unique<PowerSwitch> (*find ("power"));
+    power->onToggle = [this] { showBoard (! board->isVisible()); };
+    content.addAndMakeVisible (*power);
+    board = std::make_unique<BoardView> (proc);
+    board->onClose = [this] { showBoard (false); };
+    content.addChildComponent (*board);
+    board->setBounds (0, 0, (int) kPanelW, (int) kPanelH);
+
     content.addChildComponent (about);
     about.setBounds (0, 0, (int) kPanelW, (int) kPanelH);
 
+    setLookAndFeel (&menuLnf);   // right-click menus at double size
     setResizable (true, true);
     setResizeLimits ((int) (kPanelW * 0.4f), (int) (kPanelH * 0.4f), (int) kPanelW, (int) kPanelH);
     getConstrainer()->setFixedAspectRatio ((double) kPanelW / kPanelH);
@@ -472,7 +612,17 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
     startTimerHz (30);
 }
 
-Unit808Editor::~Unit808Editor() { stopTimer(); }
+Unit808Editor::~Unit808Editor() { stopTimer(); setLookAndFeel (nullptr); }
+
+void Unit808Editor::showBoard (bool show)
+{
+    // the board covers the whole panel (POWER included); its plate closes it again
+    board->setVisible (show);
+    if (show) board->toFront (false);
+    about.toFront (false);
+    power->showingBoard = show;
+    power->repaint();
+}
 
 void Unit808Editor::paint (juce::Graphics& g) { g.fillAll (kPanel); }
 

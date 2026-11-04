@@ -109,6 +109,56 @@ private:
     bool down = false;
 };
 
+// Trimmer on the board inside (same look as Unit 606: blue cermet body, brass rotor, slot and dot)
+class TrimmerLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    TrimmerLookAndFeel();
+    void drawRotarySlider (juce::Graphics&, int x, int y, int w, int h, float pos, float start, float end, juce::Slider&) override;
+    void drawBubble (juce::Graphics&, juce::BubbleComponent&, const juce::Point<float>&, const juce::Rectangle<float>& body) override;
+    juce::Font getSliderPopupFont (juce::Slider&) override;
+};
+
+// Right-click menus at double size, in the panel's colours
+class MenuLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    MenuLookAndFeel();
+    juce::Font getPopupMenuFont() override;
+    void getIdealPopupMenuItemSize (const juce::String& text, bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
+    void drawPopupMenuSectionHeader (juce::Graphics&, const juce::Rectangle<int>& area, const juce::String& name) override;
+};
+
+// The circuit board inside, with the 29 trimmers; clicking the plate closes it
+class BoardView : public juce::Component
+{
+public:
+    explicit BoardView (Unit808Processor&);
+    ~BoardView() override;
+    void paint (juce::Graphics&) override;
+    void mouseUp (const juce::MouseEvent&) override;
+    std::function<void()> onClose;
+private:
+    juce::Image board;
+    TrimmerLookAndFeel lnf;
+    std::vector<std::unique_ptr<juce::Slider>> trims;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> atts;
+};
+
+// POWER: up = the front panel, down = the board inside
+class PowerSwitch : public juce::Component
+{
+public:
+    explicit PowerSwitch (const Ctrl& c);
+    void paint (juce::Graphics&) override;
+    void mouseDown (const juce::MouseEvent&) override { if (onToggle) onToggle(); }
+    bool showingBoard = false;
+    std::function<void()> onToggle;
+    const Ctrl& ctrl;
+private:
+    juce::Image off, on;
+};
+
 class AboutOverlay : public juce::Component
 {
 public:
@@ -154,6 +204,12 @@ private:
     std::vector<std::unique_ptr<unit808ui::Key>> stepKeys;
     std::unique_ptr<unit808ui::Key> startStop, tap, clear;
     unit808ui::AboutOverlay about;
+    unit808ui::MenuLookAndFeel menuLnf;
+    std::unique_ptr<unit808ui::BoardView> board;
+    std::unique_ptr<unit808ui::PowerSwitch> power;
+public:
+    void showBoard (bool);   // POWER: the circuit board inside
+private:
     std::vector<std::unique_ptr<unit808ui::ChannelLabel>> channelLabels;
     struct Led { const unit808ui::Ctrl* c; juce::Image off, on; };
     Led varA, varB, part1, part2;

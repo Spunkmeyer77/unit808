@@ -1,0 +1,247 @@
+{
+  "canvas": {
+    "width": 1870,
+    "height": 1090
+  },
+  "pads": [
+    {
+      "id": "bd-tune",
+      "label": "TUNE",
+      "section": "BD",
+      "cx": 445,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "bd-click",
+      "label": "CLICK",
+      "section": "BD",
+      "cx": 545,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "bd-drive",
+      "label": "DRIVE",
+      "section": "BD",
+      "cx": 495,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "sd-tune",
+      "label": "TUNE",
+      "section": "SD",
+      "cx": 700,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "sd-decay",
+      "label": "DECAY",
+      "section": "SD",
+      "cx": 700,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "lt-tom-decay",
+      "label": "TOM DECAY",
+      "section": "LT/LC",
+      "cx": 860,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "lt-tom-bend",
+      "label": "TOM BEND",
+      "section": "LT/LC",
+      "cx": 980,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "lt-conga-decay",
+      "label": "CONGA DECAY",
+      "section": "LT/LC",
+      "cx": 860,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "lt-conga-bend",
+      "label": "CONGA BEND",
+      "section": "LT/LC",
+      "cx": 980,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "mt-tom-decay",
+      "label": "TOM DECAY",
+      "section": "MT/MC",
+      "cx": 1115,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "mt-tom-bend",
+      "label": "TOM BEND",
+      "section": "MT/MC",
+      "cx": 1235,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "mt-conga-decay",
+      "label": "CONGA DECAY",
+      "section": "MT/MC",
+      "cx": 1115,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "mt-conga-bend",
+      "label": "CONGA BEND",
+      "section": "MT/MC",
+      "cx": 1235,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "ht-tom-decay",
+      "label": "TOM DECAY",
+      "section": "HT/HC",
+      "cx": 1370,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "ht-tom-bend",
+      "label": "TOM BEND",
+      "section": "HT/HC",
+      "cx": 1490,
+      "cy": 168,
+      "size": 44
+    },
+    {
+      "id": "ht-conga-decay",
+      "label": "CONGA DECAY",
+      "section": "HT/HC",
+      "cx": 1370,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "ht-conga-bend",
+      "label": "CONGA BEND",
+      "section": "HT/HC",
+      "cx": 1490,
+      "cy": 283,
+      "size": 44
+    },
+    {
+      "id": "rs-tune",
+      "label": "RS TUNE",
+      "section": "RS/CL",
+      "cx": 130,
+      "cy": 510,
+      "size": 44
+    },
+    {
+      "id": "rs-decay",
+      "label": "RS DECAY",
+      "section": "RS/CL",
+      "cx": 280,
+      "cy": 510,
+      "size": 44
+    },
+    {
+      "id": "cl-tune",
+      "label": "CL TUNE",
+      "section": "RS/CL",
+      "cx": 130,
+      "cy": 640,
+      "size": 44
+    },
+    {
+      "id": "cl-decay",
+      "label": "CL DECAY",
+      "section": "RS/CL",
+      "cx": 280,
+      "cy": 640,
+      "size": 44
+    },
+    {
+      "id": "cp-tone",
+      "label": "TONE",
+      "section": "CP",
+      "cx": 445,
+      "cy": 525,
+      "size": 44
+    },
+    {
+      "id": "cp-decay",
+      "label": "DECAY",
+      "section": "CP",
+      "cx": 545,
+      "cy": 525,
+      "size": 44
+    },
+    {
+      "id": "cb-tune",
+      "label": "TUNE",
+      "section": "CB",
+      "cx": 670,
+      "cy": 525,
+      "size": 44
+    },
+    {
+      "id": "cb-decay",
+      "label": "DECAY",
+      "section": "CB",
+      "cx": 770,
+      "cy": 525,
+      "size": 44
+    },
+    {
+      "id": "cy-tune",
+      "label": "TUNE",
+      "section": "CY",
+      "cx": 925,
+      "cy": 525,
+      "size": 44
+    },
+    {
+      "id": "hh-tune",
+      "label": "TUNE",
+      "section": "HH",
+      "cx": 1085,
+      "cy": 525,
+      "size": 44
+    },
+    {
+      "id": "hh-tone",
+      "label": "TONE",
+      "section": "HH",
+      "cx": 1187,
+      "cy": 525,
+      "size": 44
+    },
+    {
+      "id": "ch-decay",
+      "label": "CH DECAY",
+      "section": "HH",
+      "cx": 1289,
+      "cy": 525,
+      "size": 44
+    }
+  ],
+  "plate": {
+    "id": "plate",
+    "x": 35,
+    "y": 35,
+    "width": 335,
+    "height": 315
+  }
+}

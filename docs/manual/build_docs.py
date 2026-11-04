@@ -16,7 +16,7 @@ def data_uri(p):
     return "data:image/png;base64," + base64.b64encode((HERE / "img" / p).read_bytes()).decode()
 
 
-BRAND, PANEL = data_uri("brand.png"), data_uri("panel.png")
+BRAND, PANEL, BOARD = data_uri("brand.png"), data_uri("panel.png"), data_uri("board.png")
 
 # ---------------------------------------------------------------- the segmented "UNIT-808" logotype
 SEG = {   # 7-segment style: a top, b upper-right, c lower-right, d bottom, e lower-left, f upper-left, g middle
@@ -164,7 +164,7 @@ def toc_line(label, pg, major=False):
 
 # ---------------------------------------------------------------- the panel with lettered callouts (panel 1870 x 1090)
 CALLOUTS = [
-    ("A", "POWER", " Switch", (148, 113), (-60, 70), "r"),
+    ("A", "POWER", " Switch (Inside)", (148, 113), (-60, 70), "r"),
     ("B", "MODE", " Selector", (148, 296), (-60, 250), "r"),
     ("C", "INSTRUMENT-SELECT", " / RHYTHM TRACK", (320, 296), (320, -110), "c"),
     ("D", "CLEAR", " Button", (155, 402), (-60, 405), "r"),
@@ -257,7 +257,7 @@ def manual():
            ("Composing and Playing Rhythm Tracks", 11), ("ADVANCED COURSE", 12, True), ("Control Descriptions", 12),
            ("Step Number, 2nd Part, Clearing, Copy and Paste", 13), ("Pre-Scale, Swing and Flam", 14), ("Sound Controls", 14),
            ("Mute and Solo, Selecting with the Name Windows", 15), ("Playing from MIDI", 16), ("Running in a DAW, Saving, MIDI Mapping", 16),
-           ("How Each Voice Is Modelled", 17), ("About Window, Window Size, Troubleshooting", 18), ("Specifications", 19)]
+           ("How Each Voice Is Modelled", 17), ("Inside the Box (Trimmers)", 18), ("About Window, Window Size, Troubleshooting", 20), ("Specifications", 21)]
     d.page('<div class="toc"><div class="sec"><span class="sect">TABLE OF CONTENTS</span></div>'
            + "".join(toc_line(t[0], t[1], len(t) > 2) for t in toc) + "</div>")
 
@@ -355,7 +355,7 @@ then write it in 1st PART).</p><h4>PROCEDURE</h4><ol>
            "BASIC COURSE", True)
 
     d.page(topic("Control Descriptions", '<div class="cols3">' +
-        ctl("A", "POWER Switch", "Off silences UNIT808 and darkens the indicators. Your rhythms stay in memory.") +
+        ctl("A", "POWER Switch", "Opens the circuit board inside with its 29 trimmers (see INSIDE THE BOX). UNIT808 keeps playing; click the Ticco Ross plate on the board to close it.") +
         ctl("B", "MODE Selector", "PATTERN CLEAR, 1st PART and 2nd PART (pattern write), MANUAL PLAY, PLAY and COMPOSE.") +
         ctl("C", "INSTRUMENT-SELECT", "The instrument the STEP keys write (AC, BD, SD, LT, MT, HT, RS, CP, CB, CY, OH, CH). In PLAY and COMPOSE: the Rhythm Track 1 &ndash; 12. Its printed labels also mute and solo (see MUTE AND SOLO).") +
         ctl("D", "CLEAR Button", "PATTERN CLEAR mode: clears the rhythm. COMPOSE: clears the track (TRACK CLEAR). 1st/2nd PART: sets the step number (see ADVANCED COURSE).") +
@@ -463,13 +463,31 @@ A closed hi-hat cuts off the open one.</li>
 <li><b>Accent:</b> accented steps play at full level; ACCENT sets how much softer the other steps are.</li></ul></div>'''),
         "ADVANCED COURSE", True)
 
+    d.page(f'''<div class="topic" style="margin-bottom:6px"><div class="tt">Inside the Box</div><div class="tb">
+<p>Flip the POWER switch {C["A"]} to open the circuit board inside. UNIT808 keeps playing, so you can tune the sounds while the rhythm runs.
+Drag a trimmer up or down; a read-out shows its value; double-click returns it to its default. Click the Ticco Ross plate to close the board.
+Trimmers are saved with your project and can be automated. At their defaults UNIT808 sounds exactly like the UNIT 808 device.</p></div></div>
+<img class="board" src="{BOARD}">''', "ADVANCED COURSE", True)
+    d.page(topic("The Trimmers", '''<div class="cols3">
+<table><tr><th>BD</th><th>RANGE</th></tr><tr><td>TUNE</td><td>40 &ndash; 65 Hz (49.4)</td></tr><tr><td>CLICK</td><td>0 &ndash; 1 (0.01)</td></tr><tr><td>DRIVE</td><td>1 &ndash; 6 (1)</td></tr></table>
+<table><tr><th>SD</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.8 &ndash; 1.25 &times; (1)</td></tr><tr><td>DECAY</td><td>0.5 &ndash; 2 &times; (0.73)</td></tr></table>
+<table><tr><th>LT/LC &middot; MT/MC &middot; HT/HC</th><th>RANGE</th></tr><tr><td>TOM DECAY</td><td>20 &ndash; 400 ms (95 &middot; 70 &middot; 48)</td></tr>
+<tr><td>TOM BEND</td><td>0 &ndash; 0.5 (0.03): pitch drop</td></tr><tr><td>CONGA DECAY</td><td>20 &ndash; 400 ms (86 &middot; 44 &middot; 38)</td></tr><tr><td>CONGA BEND</td><td>0 &ndash; 0.5 (0.03)</td></tr></table>
+<table><tr><th>RS/CL</th><th>RANGE</th></tr><tr><td>RS TUNE, CL TUNE</td><td>0.7 &ndash; 1.4 &times; (1)</td></tr><tr><td>RS DECAY, CL DECAY</td><td>0.5 &ndash; 3 &times; (1)</td></tr></table>
+<table><tr><th>CP</th><th>RANGE</th></tr><tr><td>TONE</td><td>600 &ndash; 5000 Hz (1300)</td></tr><tr><td>DECAY</td><td>10 &ndash; 300 ms (60): the reverb tail</td></tr></table>
+<table><tr><th>CB</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.5 &ndash; 2 &times; (1)</td></tr><tr><td>DECAY</td><td>50 &ndash; 1200 ms (97)</td></tr></table>
+<table><tr><th>CY</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.5 &ndash; 2 &times; (1)</td></tr></table>
+<table><tr><th>HH (hi-hats)</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.5 &ndash; 2 &times; (1)</td></tr><tr><td>TONE</td><td>0.6 &ndash; 1.6 &times; (1)</td></tr><tr><td>CH DECAY</td><td>5 &ndash; 100 ms (24)</td></tr></table>
+</div><p class="note">Defaults in brackets. The congas use the panel&rsquo;s TUNING and LEVEL controls of their channel; their decay and bend are here.</p>'''),
+        "ADVANCED COURSE", True)
+
     d.page(topic("About Window", '''<p>Click the Ticco Ross logo for the About window: version, build date, the format and host it runs in,
 the contact address, the Ticco Ross store, and a button that opens this manual. Click anywhere to close it.</p>''')
         + topic("Window Size", '<p>Drag the bottom-right corner to resize the window, from 40 % to 100 % of the full panel size.</p>')
         + topic("Troubleshooting", '''<table><tr><th>PROBLEM</th><th>REMEDY</th></tr>
 <tr><td>macOS won&rsquo;t open the installer</td><td>System Settings &rarr; Privacy &amp; Security &rarr; Open Anyway.</td></tr>
 <tr><td>UNIT808 is not in Live&rsquo;s browser</td><td>Settings &rarr; Plug-Ins: turn on Audio Units v2 or VST3, then Rescan.</td></tr>
-<tr><td>No sound</td><td>Check POWER and MASTER VOLUME; check that the song plays and the rhythm has steps; check that no instrument is muted (dimmed label) or another soloed (red label).</td></tr>
+<tr><td>No sound</td><td>Check MASTER VOLUME; check that the song plays and the rhythm has steps; check that no instrument is muted (dimmed label) or another soloed (red label).</td></tr>
 <tr><td>The STEP keys do not write</td><td>Writing works in 1st PART and 2nd PART. In the other modes the keys choose rhythms.</td></tr>
 <tr><td>A rhythm change waits</td><td>While playing, a new rhythm starts at the next bar (its indicator blinks).</td></tr>
 <tr><td>The wrong variation is written</td><td>Check the BASIC-VARIATION lever: A or B (AB writes A).</td></tr>
@@ -483,6 +501,7 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 <p><b>&#9675; Sound Source</b><br>BD, SD, LT/LC, MT/MC, HT/HC, RS/CL, CP/MA, CB, CY, OH, CH, AC</p>
 <p><b>&#9675; Controls</b><br>POWER, MODE, INSTRUMENT-SELECT, CLEAR, MEASURES AUTO FILL IN, SWING, FLAM, 22 sound controls,
 5 sound switches, MASTER VOLUME, BASIC-VARIATION, I/F-VARIATION, PRE-SCALE, START/STOP, STEP &times; 16, TAP</p>
+<p><b>&#9675; Trimmers</b><br>29 (inside the box)</p>
 <p><b>&#9675; Indicators</b><br>Step &times; 16 (red; blue = flam), Variation A/B, 1st/2nd Part, Clear, Mute/Solo on the 12 instrument labels</p>
 <p><b>&#9675; Timing</b><br>Follows the DAW&rsquo;s tempo and transport; Pre-Scale &times; 4; Swing</p>
 <p><b>&#9675; Formats</b><br>macOS: AU, VST3, application<br>Windows: VST3, application<br>Linux: VST3, LV2, application</p>
@@ -497,6 +516,11 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("0.4.0", "4 November 2026", [
+        "Inside the box: flip the POWER switch to open the circuit board with 29 trimmers: BD Tune, Click, Drive; SD Tune, Decay; Tom and Conga Decay and Bend for low, mid and hi; RS and CL Tune and Decay; CP Tone and Decay; CB Tune and Decay; CY Tune; HH Tune, Tone and CH Decay.",
+        "The trimmers start at the UNIT 808 device's settings, so the sound is unchanged until you turn one. They are saved with your project, can be automated, and reset with a double-click. Click the Ticco Ross plate on the board to close it.",
+        "POWER no longer switches UNIT808 off: the sound keeps playing while the board is open.",
+        "Right-click menus are twice as big, in the panel's colours."]),
     ("0.3.0", "4 November 2026", [
         "Copy and paste rhythms: right-click a STEP key (in MANUAL PLAY, PLAY, PATTERN CLEAR or COMPOSE) to copy or paste a whole rhythm or one variation, A or B.",
         "Copy and paste parts and instruments: in 1st or 2nd PART, right-click CLEAR (or a STEP key) to copy or paste the part, or just the selected instrument.",

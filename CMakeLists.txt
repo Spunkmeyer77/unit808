@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(UNIT808 VERSION 0.3.0)
+project(UNIT808 VERSION 0.4.0)
 string(TIMESTAMP U808_BUILD_DATE "%d %b %Y" UTC)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -47,7 +47,7 @@ juce_add_plugin(UNIT808
     COPY_PLUGIN_AFTER_BUILD ${U808_COPY_PLUGINS})
 
 # panel artwork (rendered by tools/rasterise_ui.py) and the manual (opened from the About window)
-file(GLOB U808_UI_PNGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/assets/ui/*.png")
+file(GLOB U808_UI_PNGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/assets/ui/*.png" "${CMAKE_CURRENT_SOURCE_DIR}/assets/ui/*.jpg")
 juce_add_binary_data(UNIT808Data SOURCES "docs/UNIT808 Manual.pdf" ${U808_UI_PNGS})
 
 set(U808_SOURCES Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/dsp/Tr808Engine.cpp)

@@ -36,6 +36,11 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
+    // the 29 trimmers on the board inside: parameter id "t-" + pad id
+    struct TrimDef { const char* pad; const char* name; float lo, hi, def, skew; const char* unit; };
+    static constexpr int kNumTrims = 29;
+    static const TrimDef kTrims[kNumTrims];
+    static juce::String trimId (int i) { return juce::String ("t-") + kTrims[i].pad; }
     juce::AudioProcessorValueTreeState apvts;
 
     enum Mode { PatternClear = 0, FirstPart, SecondPart, ManualPlay, Play, Compose };
@@ -49,7 +54,7 @@ public:
     int  getInstrument() const  { return juce::jlimit (0, 11, (int) raw.instrument->load()); }
     int  getBasicVar() const    { return juce::jlimit (0, 2, (int) raw.basicVar->load()); }
     int  getFillVar() const     { return juce::jlimit (0, 1, (int) raw.fillVar->load()); }
-    bool isPowerOn() const      { return raw.power->load() > 0.5f; }
+    bool isPowerOn() const      { return true; }   // POWER now opens the board inside; UNIT808 never switches off
     bool isRunning() const      { return playStep.load() >= 0; }
     int  getPlayStep() const    { return playStep.load(); }        // step in the playing part, -1 = stopped
     int  getPlaySlot() const    { return playSlot.load(); }
@@ -121,8 +126,9 @@ private:
 
     struct Raw
     {
-        std::atomic<float> *mode, *instrument, *autoFill, *basicVar, *fillVar, *preScale, *power, *swing, *flam, *bpm;
+        std::atomic<float> *mode, *instrument, *autoFill, *basicVar, *fillVar, *preScale, *swing, *flam, *bpm;
         std::atomic<float> *mute[unit808::kNumRows] {}, *solo[unit808::kNumRows] {};
+        std::atomic<float> *trim[29] {};
         std::atomic<float> *knob[23] {};
         std::atomic<float> *sw[5] {};
     } raw {};

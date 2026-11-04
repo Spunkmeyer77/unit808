@@ -36,7 +36,7 @@ cmake --build build --config Release
 ```
 
 GitHub Actions builds macOS (.pkg), Windows (Setup.exe) and Linux (.tar.gz) on every push (under the run's
-**Artifacts**); pushing a tag `vX.Y.Z` publishes a GitHub Release with all installers and the PDFs.
+**Artifacts**); pushing a tag `vX.Y.Z`, or a commit on main with `[release]` in its message, publishes a GitHub Release with all installers and the PDFs.
 
 ## Artwork and docs
 

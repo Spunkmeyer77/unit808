@@ -516,6 +516,10 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("0.4.1", "4 November 2026", [
+        "Right-click menus now really open at double size (larger text and rows)",
+        "New circuit board artwork inside the box",
+    ]),
     ("0.4.0", "4 November 2026", [
         "Inside the box: flip the POWER switch to open the circuit board with 29 trimmers: BD Tune, Click, Drive; SD Tune, Decay; Tom and Conga Decay and Bend for low, mid and hi; RS and CL Tune and Decay; CP Tone and Decay; CB Tune and Decay; CY Tune; HH Tune, Tone and CH Decay.",
         "The trimmers start at the UNIT 808 device's settings, so the sound is unchanged until you turn one. They are saved with your project, can be automated, and reset with a double-click. Click the Ticco Ross plate on the board to close it.",

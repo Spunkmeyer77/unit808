@@ -722,6 +722,7 @@ void Unit808Editor::stepKeyMenu (int key)
     const juce::String name = key < unit808::kFirstFill ? "Rhythm " + juce::String (key + 1) : "Intro/Fill " + juce::String (key - unit808::kFirstFill + 1);
     const int k = proc.clipKind();
     juce::PopupMenu m;
+    m.setLookAndFeel (&menuLnf);
     m.addSectionHeader (name);
     m.addItem (1, "Copy " + name.toLowerCase());
     m.addItem (2, "Copy variation A");
@@ -766,6 +767,7 @@ void Unit808Editor::clearMenu()
     const int k = proc.clipKind();
     const juce::String from = proc.clipDescription().isNotEmpty() ? "  (" + proc.clipDescription() + ")" : juce::String();
     juce::PopupMenu m;
+    m.setLookAndFeel (&menuLnf);
     m.addSectionHeader ((slot < unit808::kFirstFill ? "Rhythm " + juce::String (slot + 1) : "Intro/Fill " + juce::String (slot - 11))
                         + " " + (var == 0 ? "A" : "B") + ", " + partName);
     m.addItem (1, "Copy this " + partName);
@@ -812,6 +814,7 @@ void Unit808Editor::instrumentLabelClick (int inst, juce::ModifierKeys m)
     if (m.isPopupMenu())
     {
         juce::PopupMenu menu;
+        menu.setLookAndFeel (&menuLnf);
         menu.addSectionHeader (names[inst]);
         menu.addItem (1, "Mute", true, proc.isMuted (inst));
         if (inst > 0) menu.addItem (2, "Solo", true, proc.isSoloed (inst));
@@ -854,6 +857,7 @@ void Unit808Editor::startStopMenu()
 {
     if (! proc.isStandalone()) return;
     juce::PopupMenu m;
+    m.setLookAndFeel (&menuLnf);
     m.addSectionHeader ("Tempo (standalone app)");
     auto* prm = proc.apvts.getParameter ("standalone-bpm");
     const float cur = prm->convertFrom0to1 (prm->getValue());

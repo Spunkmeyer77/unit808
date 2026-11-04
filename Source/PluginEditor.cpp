@@ -8,6 +8,13 @@ namespace
 const float kPi = juce::MathConstants<float>::pi;
 const juce::Colour kOrange { 0xfff47c39 }, kCream { 0xffd8d5c7 }, kPanel { 0xff303332 };
 
+// popup menus at their own size: aimed at a screen area, so they do not shrink with the panel scale
+juce::PopupMenu::Options menuAt (juce::Component* c)
+{
+    return juce::PopupMenu::Options().withTargetScreenArea (c != nullptr ? c->getScreenBounds()
+                                                                         : juce::Rectangle<int> (1, 1).withPosition (juce::Desktop::getMousePosition()));
+}
+
 juce::Font font (float size, bool bold = false) { return juce::Font (juce::FontOptions (size, bold ? juce::Font::bold : juce::Font::plain)); }
 
 // angle convention of the artwork: degrees, 0 = straight up, clockwise positive
@@ -460,6 +467,140 @@ void AboutOverlay::paint (juce::Graphics& g)
                 juce::Rectangle<float> (x0, c.getBottom() - 46.0f, 640.0f, 26.0f), juce::Justification::centredLeft, true);
     g.drawText ("CLICK ANYWHERE TO CLOSE", juce::Rectangle<float> (x0, c.getBottom() - 84.0f, 400.0f, 26.0f), juce::Justification::centredLeft);
 }
+
+// ---------------------------------------------------------------------------------------------- MIDI export
+ExportPanel::ExportPanel (Unit808Processor& p) : proc (p)
+{
+    setWantsKeyboardFocus (true);
+    auto style = [this] (juce::TextButton& b, bool toggle)
+    {
+        b.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff3a3e3e));
+        b.setColour (juce::TextButton::buttonOnColourId, kOrange);
+        b.setColour (juce::TextButton::textColourOffId, kCream);
+        b.setColour (juce::TextButton::textColourOnId, juce::Colour (0xff1c1e1e));
+        b.setClickingTogglesState (toggle);
+        b.setMouseCursor (juce::MouseCursor::PointingHandCursor);
+        addAndMakeVisible (b);
+    };
+    style (saveBtn, false); style (swingBtn, true); style (muteBtn, true);
+    swingBtn.onClick = [this] { proc.exportSwing = swingBtn.getToggleState(); refresh(); };
+    muteBtn.onClick  = [this] { proc.exportMuteSolo = muteBtn.getToggleState(); refresh(); };
+    saveBtn.onClick = [this]
+    {
+        auto start = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory).getChildFile (juce::File::createLegalFileName (name) + ".mid");
+        chooser = std::make_unique<juce::FileChooser> ("Save MIDI file", start, "*.mid");
+        chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
+                              [safe = juce::Component::SafePointer<ExportPanel> (this)] (const juce::FileChooser& fc)
+                              {
+                                  if (safe == nullptr) return;
+                                  auto f = fc.getResult();
+                                  if (f == juce::File()) return;
+                                  f = f.withFileExtension ("mid");
+                                  safe->status = safe->proc.writeMidi (safe->spec, f) ? "SAVED: " + f.getFileName() : "COULD NOT WRITE " + f.getFileName();
+                                  safe->repaint();
+                              });
+    };
+}
+
+juce::Rectangle<float> ExportPanel::card() const { return juce::Rectangle<float> (860.0f, 560.0f).withCentre ({ 935.0f, 545.0f }); }
+juce::Rectangle<float> ExportPanel::tile() const { const auto c = card(); return { c.getX() + 48.0f, c.getY() + 150.0f, c.getWidth() - 96.0f, 150.0f }; }
+juce::File ExportPanel::tempFile() const
+{
+    return juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("UNIT808 MIDI").getChildFile (juce::File::createLegalFileName (name) + ".mid");
+}
+
+void ExportPanel::show (const Unit808Processor::ExportSpec& x)
+{
+    spec = x; status = {};
+    swingBtn.setToggleState (proc.exportSwing, juce::dontSendNotification);
+    muteBtn.setToggleState (proc.exportMuteSolo, juce::dontSendNotification);
+    refresh();
+    toFront (false);
+    setVisible (true);
+    if (isShowing()) grabKeyboardFocus();
+}
+
+void ExportPanel::refresh()
+{
+    name = proc.exportName (spec);
+    proc.buildMidi (spec, &notes, &bars);
+    repaint();
+}
+
+void ExportPanel::resized()
+{
+    const auto c = card();
+    swingBtn.setBounds (juce::Rectangle<float> (c.getX() + 48.0f, c.getY() + 330.0f, 320.0f, 46.0f).toNearestInt());
+    muteBtn.setBounds (juce::Rectangle<float> (c.getRight() - 368.0f, c.getY() + 330.0f, 320.0f, 46.0f).toNearestInt());
+    saveBtn.setBounds (juce::Rectangle<float> (c.getX() + 48.0f, c.getY() + 400.0f, c.getWidth() - 96.0f, 56.0f).toNearestInt());
+}
+
+void ExportPanel::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colours::black.withAlpha (0.62f));
+    const auto c = card();
+    g.setColour (juce::Colours::black.withAlpha (0.55f));
+    g.fillRect (c.translated (0, 8.0f));
+    g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xff3d4040), c.getY(), juce::Colour (0xff262a2a), c.getBottom()));
+    g.fillRect (c);
+    g.setColour (juce::Colour (0xff565a5a));
+    g.drawRect (c, 2.0f);
+    g.setColour (kOrange);
+    g.fillRect (c.getX() + 48.0f, c.getY() + 104.0f, c.getWidth() - 96.0f, 3.0f);
+
+    const float x0 = c.getX() + 48.0f;
+    g.setColour (kOrange);
+    g.setFont (font (40.0f, true));
+    g.drawText ("EXPORT MIDI", juce::Rectangle<float> (x0, c.getY() + 30.0f, 400.0f, 50.0f), juce::Justification::centredLeft);
+    g.setColour (kCream);
+    g.setFont (font (20.0f));
+    g.drawText (name.fromFirstOccurrenceOf ("UNIT808 ", false, false), juce::Rectangle<float> (x0 + 300.0f, c.getY() + 30.0f, c.getWidth() - 396.0f, 50.0f),
+                juce::Justification::centredRight, true);
+
+    // the clip: grab it and drop it on a DAW track
+    const auto t = tile();
+    g.setColour (pressedInTile ? juce::Colour (0xffece8d8) : juce::Colour (0xffd8d5c7));
+    g.fillRect (t);
+    g.setColour (juce::Colour (0xff1c1e1e));
+    for (int i = 0; i < 16; ++i)   // a little step pattern
+        g.fillRect (juce::Rectangle<float> (t.getX() + 30.0f + (float) i * 18.0f, t.getY() + 40.0f + (float) ((i * 7) % 5) * 12.0f, 12.0f, 8.0f));
+    g.setFont (font (26.0f, true));
+    g.drawText (notes > 0 ? "DRAG ME INTO YOUR DAW" : "NOTHING TO EXPORT", t.withTrimmedLeft (340.0f).withTrimmedBottom (40.0f), juce::Justification::centredLeft);
+    g.setFont (font (17.0f));
+    g.drawText (juce::String (notes) + " notes  |  " + juce::String (bars, bars == std::floor (bars) ? 0 : 2) + (bars == 1.0 ? " bar" : " bars")
+                + "  |  " + juce::String (proc.getHostBpm(), 1) + " BPM  |  channel 10",
+                t.withTrimmedLeft (340.0f).withTrimmedTop (80.0f).withTrimmedBottom (20.0f), juce::Justification::centredLeft);
+
+    g.setColour (juce::Colour (0xff9fa29a));
+    g.setFont (font (15.0f));
+    g.drawText (status.isNotEmpty() ? status : "ESC OR CLICK OUTSIDE TO CLOSE", juce::Rectangle<float> (x0, c.getBottom() - 70.0f, c.getWidth() - 96.0f, 26.0f),
+                juce::Justification::centredLeft, true);
+}
+
+void ExportPanel::mouseDown (const juce::MouseEvent& e)
+{
+    pressedInTile = tile().contains (e.position) && notes > 0;
+    dragging = false;
+    repaint();
+}
+
+void ExportPanel::mouseDrag (const juce::MouseEvent& e)
+{
+    if (! pressedInTile || dragging || e.getDistanceFromDragStart() < 6) return;
+    const auto f = tempFile();
+    if (! proc.writeMidi (spec, f)) { status = "COULD NOT WRITE THE MIDI FILE"; repaint(); return; }
+    dragging = true;
+    juce::DragAndDropContainer::performExternalDragDropOfFiles ({ f.getFullPathName() }, false, this,
+        [safe = juce::Component::SafePointer<ExportPanel> (this)] { if (safe != nullptr) { safe->dragging = false; safe->pressedInTile = false; safe->repaint(); } });
+}
+
+void ExportPanel::mouseUp (const juce::MouseEvent& e)
+{
+    const bool wasTile = pressedInTile;
+    pressedInTile = false;
+    repaint();
+    if (! wasTile && ! card().contains (e.position)) setVisible (false);
+}
 } // namespace unit808ui
 
 // ================================================================================================== Editor
@@ -603,6 +744,8 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
 
     content.addChildComponent (about);
     about.setBounds (0, 0, (int) kPanelW, (int) kPanelH);
+    content.addChildComponent (exporter);
+    exporter.setBounds (0, 0, (int) kPanelW, (int) kPanelH);
 
     setLookAndFeel (&menuLnf);   // right-click menus at double size
     setResizable (true, true);
@@ -734,7 +877,14 @@ void Unit808Editor::stepKeyMenu (int key)
     m.addItem (6, "Paste to variation B" + (k == Unit808Processor::ClipVariation ? from : juce::String()), k == Unit808Processor::ClipVariation);
     m.addSeparator();
     m.addItem (7, "Undo paste", proc.canUndoPaste());
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (stepKeys[(size_t) key].get()),
+    m.addSeparator();
+    m.addItem (10, "Export " + name.toLowerCase() + " as MIDI...");
+    m.addItem (11, "Export variation A as MIDI...");
+    m.addItem (12, "Export variation B as MIDI...");
+    const int track = proc.getTrack();
+    if (mode == Unit808Processor::Play || mode == Unit808Processor::Compose)
+        m.addItem (13, "Export rhythm track " + juce::String (track + 1) + " as MIDI...", proc.memory.trackLen[track].load() > 0);
+    m.showMenuAsync (menuAt (stepKeys[(size_t) key].get()),
                      [safe = juce::Component::SafePointer<Unit808Editor> (this), key] (int r)
                      {
                          if (safe == nullptr || r <= 0) return;
@@ -749,6 +899,14 @@ void Unit808Editor::stepKeyMenu (int key)
                              case 5: pasted = p.pasteVariation (key, 0); break;
                              case 6: pasted = p.pasteVariation (key, 1); break;
                              case 7: p.undoPaste(); break;
+                             case 10: case 11: case 12: case 13:
+                             {
+                                 Unit808Processor::ExportSpec x;
+                                 x.slot = key; x.kind = r == 10 ? Unit808Processor::ExRhythm : r == 13 ? Unit808Processor::ExTrack : Unit808Processor::ExVariation;
+                                 x.var = r == 12 ? 1 : 0; x.track = p.getTrack();
+                                 safe->exportMidi (x);
+                                 break;
+                             }
                              default: break;
                          }
                          if (pasted) safe->flash (key);
@@ -777,7 +935,10 @@ void Unit808Editor::clearMenu()
     m.addItem (4, "Paste into " + instName + (k == Unit808Processor::ClipRow ? from : juce::String()), k == Unit808Processor::ClipRow);
     m.addSeparator();
     m.addItem (5, "Undo paste", proc.canUndoPaste());
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (clear.get()),
+    m.addSeparator();
+    m.addItem (10, "Export this " + partName + " as MIDI...");
+    m.addItem (11, "Export " + instName + " as MIDI...", inst > 0);
+    m.showMenuAsync (menuAt (clear.get()),
                      [safe = juce::Component::SafePointer<Unit808Editor> (this), slot, var, part, inst] (int r)
                      {
                          if (safe == nullptr || r <= 0) return;
@@ -789,6 +950,14 @@ void Unit808Editor::clearMenu()
                              case 3: p.pastePart (slot, var, part); break;
                              case 4: p.pasteRow (slot, var, part, inst); break;
                              case 5: p.undoPaste(); break;
+                             case 10: case 11:
+                             {
+                                 Unit808Processor::ExportSpec x;
+                                 x.kind = r == 10 ? Unit808Processor::ExPart : Unit808Processor::ExRow;
+                                 x.slot = slot; x.var = var; x.part = part; x.row = inst;
+                                 safe->exportMidi (x);
+                                 break;
+                             }
                              default: break;
                          }
                          safe->content.repaint();
@@ -822,7 +991,7 @@ void Unit808Editor::instrumentLabelClick (int inst, juce::ModifierKeys m)
         bool any = false;
         for (int i = 0; i < 12; ++i) any |= proc.isMuted (i) || proc.isSoloed (i);
         menu.addItem (3, "Clear all mutes and solos", any);
-        menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this),
+        menu.showMenuAsync (menuAt (nullptr),
                             [safe = juce::Component::SafePointer<Unit808Editor> (this), inst] (int r)
                             {
                                 if (safe == nullptr || r <= 0) return;
@@ -863,7 +1032,7 @@ void Unit808Editor::startStopMenu()
     const float cur = prm->convertFrom0to1 (prm->getValue());
     for (int bpm : { 90, 100, 110, 115, 120, 125, 128, 130, 135, 140, 150, 160, 174 })
         m.addItem (bpm, juce::String (bpm) + " BPM", true, std::abs (cur - (float) bpm) < 0.05f);
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (startStop.get()), [prm] (int r)
+    m.showMenuAsync (menuAt (startStop.get()), [prm] (int r)
     {
         if (r <= 0) return;
         prm->beginChangeGesture();

@@ -175,6 +175,32 @@ private:
     juce::Image logo;
     juce::Rectangle<float> card() const;
 };
+
+// MIDI export: drag the clip into the DAW, or save it as a .mid file
+class ExportPanel : public juce::Component
+{
+public:
+    explicit ExportPanel (Unit808Processor&);
+    void show (const Unit808Processor::ExportSpec&);
+    void paint (juce::Graphics&) override;
+    void resized() override;
+    void mouseDown (const juce::MouseEvent&) override;
+    void mouseDrag (const juce::MouseEvent&) override;
+    void mouseUp (const juce::MouseEvent&) override;
+    bool keyPressed (const juce::KeyPress& k) override { if (k == juce::KeyPress::escapeKey) setVisible (false); return true; }
+    juce::Rectangle<float> card() const;
+    juce::Rectangle<float> tile() const;
+private:
+    Unit808Processor& proc;
+    Unit808Processor::ExportSpec spec;
+    juce::String name, status;
+    int notes = 0; double bars = 0;
+    bool pressedInTile = false, dragging = false;
+    juce::TextButton saveBtn { "SAVE .MID FILE..." }, swingBtn { "WRITE SWING INTO THE NOTES" }, muteBtn { "LEAVE OUT MUTED / SOLOED-OUT" };
+    std::unique_ptr<juce::FileChooser> chooser;
+    void refresh();
+    juce::File tempFile() const;
+};
 } // namespace unit808ui
 
 class Unit808Editor : public juce::AudioProcessorEditor, private juce::Timer
@@ -204,11 +230,14 @@ private:
     std::vector<std::unique_ptr<unit808ui::Key>> stepKeys;
     std::unique_ptr<unit808ui::Key> startStop, tap, clear;
     unit808ui::AboutOverlay about;
+    unit808ui::ExportPanel exporter { proc };
+
     unit808ui::MenuLookAndFeel menuLnf;
     std::unique_ptr<unit808ui::BoardView> board;
     std::unique_ptr<unit808ui::PowerSwitch> power;
 public:
     void showBoard (bool);   // POWER: the circuit board inside
+    void exportMidi (const Unit808Processor::ExportSpec& x) { exporter.show (x); }
 private:
     std::vector<std::unique_ptr<unit808ui::ChannelLabel>> channelLabels;
     struct Led { const unit808ui::Ctrl* c; juce::Image off, on; };

@@ -511,6 +511,7 @@ void Unit808Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     }
     transportRunning = playing;
     bpm = juce::jlimit (20.0, 999.0, bpm);
+    hostBpm = bpm;
     const double sps = bpm / 60.0 * 4.0 / sampleRate;         // 16th notes per sample
     if (! hostTransport && playing) internalPpq += numSamples * sps / 4.0;
 
@@ -673,3 +674,107 @@ void Unit808Processor::setStateInformation (const void* data, int sizeInBytes)
 
 juce::AudioProcessorEditor* Unit808Processor::createEditor() { return new Unit808Editor (*this); }
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new Unit808Processor(); }
+
+// ================================================================================================ MIDI export
+int Unit808Processor::exportNote (int row) const
+{
+    auto alt = [this] (int i) { return raw.sw[i]->load() > 0.5f; };
+    switch (row)
+    {
+        case 1: return 36;                      // BD
+        case 2: return 38;                      // SD
+        case 3: return alt (0) ? 64 : 41;       // LT / low conga
+        case 4: return alt (1) ? 63 : 45;       // MT / mid conga
+        case 5: return alt (2) ? 62 : 48;       // HT / hi conga
+        case 6: return alt (3) ? 75 : 37;       // RS / claves
+        case 7: return alt (4) ? 70 : 39;       // CP / maracas
+        case 8: return 56;                      // CB
+        case 9: return 49;                      // CY
+        case 10: return 46;                     // OH
+        case 11: return 42;                     // CH
+        default: return 0;
+    }
+}
+
+juce::String Unit808Processor::exportName (const ExportSpec& x) const
+{
+    juce::String n = x.kind == ExTrack ? "Rhythm Track " + juce::String (x.track + 1)
+                   : x.slot < kFirstFill ? "Rhythm " + juce::String (x.slot + 1) : "Intro-Fill " + juce::String (x.slot - kFirstFill + 1);
+    if (x.kind == ExVariation || x.kind == ExPart || x.kind == ExRow) n << " " << (x.var == 0 ? "A" : "B");
+    if (x.kind == ExPart || x.kind == ExRow) n << " " << (x.part == 0 ? "1st" : "2nd") << " part";
+    if (x.kind == ExRow) n << " " << kInstrumentNames[juce::jlimit (1, kNumRows - 1, x.row)];
+    return "UNIT808 " + n;
+}
+
+juce::MidiFile Unit808Processor::buildMidi (const ExportSpec& x, int* numNotes, double* bars) const
+{
+    std::vector<Segment> segs;
+    switch (x.kind)
+    {
+        case ExRhythm:    segmentFor (x.slot, VarAB, segs); break;
+        case ExVariation: segmentFor (x.slot, x.var == 0 ? VarA : VarB, segs); break;
+        case ExPart: case ExRow:
+            if (x.part == 0 || memory.rhythm[x.slot].part[x.var][1].length.load() > 0) segs.push_back ({ x.slot, x.var, x.part });
+            break;
+        case ExTrack:
+            for (int i = 0; i < memory.trackLen[x.track].load(); ++i) { const auto e = memory.entry (x.track, i); segmentFor (e.slot, e.var, segs); }
+            break;
+        default: break;
+    }
+    constexpr int ppq = 960;
+    const double bpm = hostBpm.load();
+    const double L = kStepLen16[juce::jlimit (0, 3, (int) raw.preScale->load())];
+    const double swingAmt = exportSwing ? juce::jlimit (0.0, 0.5, 0.5 * (double) raw.swing->load()) : 0.0;
+    auto tick = [&] (long long k, bool swung) { return juce::roundToInt (((double) k + (swung && (k & 1) ? swingAmt : 0.0)) * L * ppq / 4.0); };
+    const int flamTicks = juce::jmax (1, juce::roundToInt ((5.0 + 35.0 * raw.flam->load()) * 0.001 * bpm / 60.0 * ppq));
+    const int dur = juce::jmax (10, juce::roundToInt (L * ppq / 8.0));   // half a step
+
+    juce::MidiMessageSequence seq;
+    seq.addEvent (juce::MidiMessage::textMetaEvent (3, exportName (x)), 0);
+    seq.addEvent (juce::MidiMessage::tempoMetaEvent (juce::roundToInt (60000000.0 / bpm)), 0);
+    seq.addEvent (juce::MidiMessage::timeSignatureMetaEvent (4, 4), 0);
+    int notes = 0;
+    auto add = [&] (int note, int vel, int t)
+    {
+        seq.addEvent (juce::MidiMessage::noteOn (10, note, (juce::uint8) juce::jlimit (1, 127, vel)), t);
+        seq.addEvent (juce::MidiMessage::noteOff (10, note), t + dur);
+        ++notes;
+    };
+    long long k = 0;
+    for (const auto& sg : segs)
+    {
+        const auto& part = memory.rhythm[sg.slot].part[sg.var][sg.part];
+        const int len = partLength (sg);
+        for (int s = 0; s < len; ++s, ++k)
+        {
+            const bool acc = part.cell (0, s) && ! (exportMuteSolo && isMuted (0));
+            const int vel = acc ? 127 : 100, t = tick (k, true);
+            for (int r = 1; r < kNumRows; ++r)
+            {
+                if (x.kind == ExRow && r != x.row) continue;
+                if (! part.cell (r, s) || (exportMuteSolo && ! voiceAllowed (r))) continue;
+                if (part.flam (r, s)) { add (exportNote (r), juce::roundToInt (vel * 0.55), t); add (exportNote (r), vel, t + flamTicks); }
+                else add (exportNote (r), vel, t);
+            }
+        }
+    }
+    const int end = juce::jmax (tick (k, false), ppq);
+    seq.addEvent (juce::MidiMessage::endOfTrack(), end);
+    seq.sort();
+    seq.updateMatchedPairs();
+    juce::MidiFile f;
+    f.setTicksPerQuarterNote (ppq);
+    f.addTrack (seq);
+    if (numNotes != nullptr) *numNotes = notes;
+    if (bars != nullptr) *bars = (double) end / (ppq * 4.0);
+    return f;
+}
+
+bool Unit808Processor::writeMidi (const ExportSpec& x, const juce::File& file) const
+{
+    file.getParentDirectory().createDirectory();
+    file.deleteFile();
+    juce::FileOutputStream out (file);
+    if (! out.openedOk()) return false;
+    return buildMidi (x).writeTo (out, 1);
+}

@@ -431,6 +431,39 @@ int main (int argc, char** argv)
         auto bf = outDir.getChildFile ("editor_board.png");
         bf.deleteFile();
         if (auto os = std::unique_ptr<juce::OutputStream> (bf.createOutputStream())) png.writeImageToStream (bimg, *os);
+        // the MIDI export window
+        if (auto* e8 = dynamic_cast<Unit808Editor*> (ed.get())) { e8->showBoard (false); e8->exportMidi ({}); }
+        auto ximg = ed->createComponentSnapshot (ed->getLocalBounds(), true, 1.0f);
+        auto xf = outDir.getChildFile ("editor_export.png");
+        xf.deleteFile();
+        if (auto os = std::unique_ptr<juce::OutputStream> (xf.createOutputStream())) png.writeImageToStream (ximg, *os);
+    }
+
+    // ---- MIDI export
+    {
+        P::ExportSpec x; x.kind = P::ExRow; x.slot = 0; x.var = 0; x.part = 0; x.row = 1;
+        const auto& pa = proc.memory.rhythm[0].part[0][0];
+        int n = 0; double bars = 0;
+        auto mf = proc.buildMidi (x, &n, &bars);
+        int ons = 0, first = -1, firstVel = 0; bool allBd = true, ch10 = true;
+        auto* tr = mf.getTrack (0);
+        for (auto* ev : *tr) if (ev->message.isNoteOn())
+        {
+            ++ons; allBd &= ev->message.getNoteNumber() == 36; ch10 &= ev->message.getChannel() == 10;
+            if (first < 0) { first = (int) ev->message.getTimeStamp(); firstVel = ev->message.getVelocity(); }
+        }
+        int bits = 0; for (int s = 0; s < 16; ++s) bits += pa.cell (1, s) ? 1 : 0;
+        check (ons == bits && n == bits && allBd && ch10, "MIDI export: one BD row -> its hits as GM note 36 on channel 10");
+        check (first == 0 && firstVel == 127 && std::abs (bars - 1.0) < 1e-9, "MIDI export: accented step 1 at velocity 127, one bar long");
+        x.kind = P::ExPart;
+        int all = 0; for (int r = 1; r < 12; ++r) for (int s = 0; s < 16; ++s) all += pa.cell (r, s) ? (pa.flam (r, s) ? 2 : 1) : 0;
+        proc.buildMidi (x, &n);
+        check (n == all, "MIDI export: a whole part has every hit (flams as two notes)");
+        auto f = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("unit808_test.mid");
+        check (proc.writeMidi (x, f) && f.getSize() > 30, "MIDI export: writes a .mid file");
+        juce::MidiFile back; juce::FileInputStream in (f);
+        check (back.readFrom (in) && back.getNumTracks() == 1, "MIDI export: the file reads back");
+        f.deleteFile();
     }
 
     std::printf ("\n%s (%d failure%s)\n", failures == 0 ? "ALL PASSED" : "FAILED", failures, failures == 1 ? "" : "s");

@@ -100,6 +100,17 @@ public:
     void undoPaste();
     juce::String clipDescription() const;
 
+    // ---- MIDI export (rhythms, variations, parts, one instrument, whole rhythm tracks)
+    enum ExportKind { ExRhythm = 0, ExVariation, ExPart, ExRow, ExTrack };
+    struct ExportSpec { int kind = ExRhythm, slot = 0, var = 0, part = 0, row = 1, track = 0; };
+    bool exportSwing = true;       // write SWING into the note times
+    bool exportMuteSolo = false;   // leave out what is muted / soloed out
+    juce::MidiFile buildMidi (const ExportSpec&, int* numNotes = nullptr, double* bars = nullptr) const;
+    bool writeMidi (const ExportSpec&, const juce::File&) const;
+    juce::String exportName (const ExportSpec&) const;
+    int exportNote (int row) const;   // GM note of an instrument row (follows the LT / MT / HT / RS / CP selectors)
+    double getHostBpm() const { return hostBpm.load(); }
+
     std::atomic<int> uiVersion { 0 };
 
 private:
@@ -110,6 +121,7 @@ private:
     std::atomic<int> playStep { -1 }, playSlot { 0 }, playVar { 0 }, playPart { 0 };
     std::atomic<int> selectedSlot { 0 }, pendingSlot { -1 }, selectedFill { unit808::kFirstFill };
     std::atomic<int> composeChoice { -1 };
+    std::atomic<double> hostBpm { 120.0 };
     std::atomic<bool> fillRequested { false }, stepNumberArmed { false }, transportRunning { false }, runEnabled { false };
 
     // playback (audio thread)

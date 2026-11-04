@@ -17,6 +17,7 @@ def data_uri(p):
 
 
 BRAND, PANEL, BOARD = data_uri("brand.png"), data_uri("panel.png"), data_uri("board.png")
+EXPORT = data_uri("export.png")
 
 # ---------------------------------------------------------------- the segmented "UNIT-808" logotype
 SEG = {   # 7-segment style: a top, b upper-right, c lower-right, d bottom, e lower-left, f upper-left, g middle
@@ -257,7 +258,7 @@ def manual():
            ("Composing and Playing Rhythm Tracks", 11), ("ADVANCED COURSE", 12, True), ("Control Descriptions", 12),
            ("Step Number, 2nd Part, Clearing, Copy and Paste", 13), ("Pre-Scale, Swing and Flam", 14), ("Sound Controls", 14),
            ("Mute and Solo, Selecting with the Name Windows", 15), ("Playing from MIDI", 16), ("Running in a DAW, Saving, MIDI Mapping", 16),
-           ("How Each Voice Is Modelled", 17), ("Inside the Box (Trimmers)", 18), ("About Window, Window Size, Troubleshooting", 20), ("Specifications", 21)]
+           ("How Each Voice Is Modelled", 17), ("Inside the Box (Trimmers)", 18), ("Exporting MIDI", 20), ("About Window, Window Size, Troubleshooting", 21), ("Specifications", 22)]
     d.page('<div class="toc"><div class="sec"><span class="sect">TABLE OF CONTENTS</span></div>'
            + "".join(toc_line(t[0], t[1], len(t) > 2) for t in toc) + "</div>")
 
@@ -465,7 +466,7 @@ A closed hi-hat cuts off the open one.</li>
 
     d.page(f'''<div class="topic" style="margin-bottom:6px"><div class="tt">Inside the Box</div><div class="tb">
 <p>Flip the POWER switch {C["A"]} to open the circuit board inside. UNIT808 keeps playing, so you can tune the sounds while the rhythm runs.
-Drag a trimmer up or down; a read-out shows its value; double-click returns it to its default. Click the Ticco Ross plate to close the board.
+Drag a trimmer up or down; a read-out shows its value; double-click returns it to its default. Click the &ldquo;Rhythm Composer&rdquo; lettering on the lower board to close it again.
 Trimmers are saved with your project and can be automated. At their defaults UNIT808 sounds exactly like the UNIT 808 device.</p></div></div>
 <img class="board" src="{BOARD}">''', "ADVANCED COURSE", True)
     d.page(topic("The Trimmers", '''<div class="cols3">
@@ -480,6 +481,19 @@ Trimmers are saved with your project and can be automated. At their defaults UNI
 <table><tr><th>HH (hi-hats)</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.5 &ndash; 2 &times; (1)</td></tr><tr><td>TONE</td><td>0.6 &ndash; 1.6 &times; (1)</td></tr><tr><td>CH DECAY</td><td>5 &ndash; 100 ms (24)</td></tr></table>
 </div><p class="note">Defaults in brackets. The congas use the panel&rsquo;s TUNING and LEVEL controls of their channel; their decay and bend are here.</p>'''),
         "ADVANCED COURSE", True)
+
+    d.page(topic("Exporting MIDI", f'''<p>UNIT808 turns its rhythms into standard MIDI clips you can drop into your DAW or save as .mid files.</p>
+<ul><li><b>A rhythm or a variation:</b> right-click a STEP key in MANUAL PLAY, PLAY, PATTERN CLEAR or COMPOSE and choose
+<i>Export rhythm</i> (variation A then B, with their 2nd parts), <i>Export variation A</i> or <i>Export variation B</i>.</li>
+<li><b>A rhythm track (song):</b> in PLAY or COMPOSE the same menu offers <i>Export rhythm track</i> for the track INSTRUMENT-SELECT points at, bar by bar with its fills.</li>
+<li><b>A part or one instrument:</b> in 1st or 2nd PART, right-click CLEAR and choose <i>Export this part</i> or <i>Export</i> the selected instrument.</li></ul>
+<p>The export window then shows the clip. <b>Drag the clip</b> onto a track in your DAW, or click <b>SAVE .MID FILE</b>.
+<b>WRITE SWING INTO THE NOTES</b> moves the notes the way SWING plays them (off: straight 16ths).
+<b>LEAVE OUT MUTED / SOLOED-OUT</b> exports only what you hear. Esc or a click outside closes the window.</p>
+<img src="{EXPORT}" style="display:block;width:58%;margin:6px auto">
+<p class="note">Notes are General MIDI drums on channel 10, the same notes UNIT808 plays from: BD 36, SD 38, LT 41 (conga 64), MT 45 (63), HT 48 (62),
+RS 37 (claves 75), CP 39 (maracas 70), CB 56, CY 49, OH 46, CH 42; the toms, RS and CP follow their selector switches. Accented steps have velocity 127,
+the others 100; flams are a soft grace note and the main hit after the FLAM time. Tempo is the DAW&rsquo;s, 4/4, PRE-SCALE is respected.</p>'''), "ADVANCED COURSE", True)
 
     d.page(topic("About Window", '''<p>Click the Ticco Ross logo for the About window: version, build date, the format and host it runs in,
 the contact address, the Ticco Ross store, and a button that opens this manual. Click anywhere to close it.</p>''')
@@ -516,6 +530,11 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("0.4.2", "4 November 2026", [
+        "MIDI export: rhythms, variations, parts, single instruments and whole rhythm tracks; drag the clip into your DAW or save a .mid file",
+        "New inside: a photographed circuit board with the 29 trimmers on the voice board; click the Rhythm Composer lettering to close it",
+        "Right-click menus fixed for real: they no longer shrink with the window size",
+    ]),
     ("0.4.1", "4 November 2026", [
         "Right-click menus now really open at double size (larger text and rows)",
         "New circuit board artwork inside the box",

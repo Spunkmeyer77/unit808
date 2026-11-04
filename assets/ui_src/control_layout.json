@@ -1,0 +1,1476 @@
+{
+  "canvas": {
+    "width": 1870,
+    "height": 1090
+  },
+  "coordinate_system": "Global 1870 x 1090 SVG units; 0 degrees straight up, positive clockwise",
+  "controls": [
+    {
+      "id": "ac-level",
+      "type": "knob",
+      "cx": 470,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "ac-level-base.svg",
+        "cap": "ac-level-cap.svg"
+      },
+      "viewBox": [
+        430,
+        204,
+        80,
+        80
+      ],
+      "default_angle": -35.0
+    },
+    {
+      "id": "bd-level",
+      "type": "knob",
+      "cx": 580,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "bd-level-base.svg",
+        "cap": "bd-level-cap.svg"
+      },
+      "viewBox": [
+        540,
+        204,
+        80,
+        80
+      ],
+      "default_angle": -24.0
+    },
+    {
+      "id": "sd-level",
+      "type": "knob",
+      "cx": 690,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "sd-level-base.svg",
+        "cap": "sd-level-cap.svg"
+      },
+      "viewBox": [
+        650,
+        204,
+        80,
+        80
+      ],
+      "default_angle": -13.0
+    },
+    {
+      "id": "lt-level",
+      "type": "knob",
+      "cx": 800,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "lt-level-base.svg",
+        "cap": "lt-level-cap.svg"
+      },
+      "viewBox": [
+        760,
+        204,
+        80,
+        80
+      ],
+      "default_angle": -2.0
+    },
+    {
+      "id": "mt-level",
+      "type": "knob",
+      "cx": 910,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "mt-level-base.svg",
+        "cap": "mt-level-cap.svg"
+      },
+      "viewBox": [
+        870,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 9.0
+    },
+    {
+      "id": "ht-level",
+      "type": "knob",
+      "cx": 1020,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "ht-level-base.svg",
+        "cap": "ht-level-cap.svg"
+      },
+      "viewBox": [
+        980,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 20.0
+    },
+    {
+      "id": "rs-level",
+      "type": "knob",
+      "cx": 1130,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "rs-level-base.svg",
+        "cap": "rs-level-cap.svg"
+      },
+      "viewBox": [
+        1090,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 31.0
+    },
+    {
+      "id": "cp-level",
+      "type": "knob",
+      "cx": 1240,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "cp-level-base.svg",
+        "cap": "cp-level-cap.svg"
+      },
+      "viewBox": [
+        1200,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 42.0
+    },
+    {
+      "id": "cb-level",
+      "type": "knob",
+      "cx": 1350,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "cb-level-base.svg",
+        "cap": "cb-level-cap.svg"
+      },
+      "viewBox": [
+        1310,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 53.0
+    },
+    {
+      "id": "cy-level",
+      "type": "knob",
+      "cx": 1460,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "cy-level-base.svg",
+        "cap": "cy-level-cap.svg"
+      },
+      "viewBox": [
+        1420,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 64.0
+    },
+    {
+      "id": "oh-level",
+      "type": "knob",
+      "cx": 1570,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "oh-level-base.svg",
+        "cap": "oh-level-cap.svg"
+      },
+      "viewBox": [
+        1530,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 75.0
+    },
+    {
+      "id": "ch-level",
+      "type": "knob",
+      "cx": 1680,
+      "cy": 244,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "ch-level-base.svg",
+        "cap": "ch-level-cap.svg"
+      },
+      "viewBox": [
+        1640,
+        204,
+        80,
+        80
+      ],
+      "default_angle": 86.0
+    },
+    {
+      "id": "bd-tone",
+      "type": "knob",
+      "cx": 580,
+      "cy": 359,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "bd-tone-base.svg",
+        "cap": "bd-tone-cap.svg"
+      },
+      "viewBox": [
+        540,
+        319,
+        80,
+        80
+      ],
+      "default_angle": 30.0
+    },
+    {
+      "id": "sd-tone",
+      "type": "knob",
+      "cx": 690,
+      "cy": 359,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "sd-tone-base.svg",
+        "cap": "sd-tone-cap.svg"
+      },
+      "viewBox": [
+        650,
+        319,
+        80,
+        80
+      ],
+      "default_angle": 45.0
+    },
+    {
+      "id": "lt-tuning",
+      "type": "knob",
+      "cx": 800,
+      "cy": 359,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "lt-tuning-base.svg",
+        "cap": "lt-tuning-cap.svg"
+      },
+      "viewBox": [
+        760,
+        319,
+        80,
+        80
+      ],
+      "default_angle": 60.0
+    },
+    {
+      "id": "mt-tuning",
+      "type": "knob",
+      "cx": 910,
+      "cy": 359,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "mt-tuning-base.svg",
+        "cap": "mt-tuning-cap.svg"
+      },
+      "viewBox": [
+        870,
+        319,
+        80,
+        80
+      ],
+      "default_angle": 75.0
+    },
+    {
+      "id": "ht-tuning",
+      "type": "knob",
+      "cx": 1020,
+      "cy": 359,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "ht-tuning-base.svg",
+        "cap": "ht-tuning-cap.svg"
+      },
+      "viewBox": [
+        980,
+        319,
+        80,
+        80
+      ],
+      "default_angle": 90.0
+    },
+    {
+      "id": "cy-tone",
+      "type": "knob",
+      "cx": 1460,
+      "cy": 359,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "cy-tone-base.svg",
+        "cap": "cy-tone-cap.svg"
+      },
+      "viewBox": [
+        1420,
+        319,
+        80,
+        80
+      ],
+      "default_angle": 150.0
+    },
+    {
+      "id": "bd-decay",
+      "type": "knob",
+      "cx": 580,
+      "cy": 477,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "bd-decay-base.svg",
+        "cap": "bd-decay-cap.svg"
+      },
+      "viewBox": [
+        540,
+        437,
+        80,
+        80
+      ],
+      "default_angle": 32.0
+    },
+    {
+      "id": "sd-snappy",
+      "type": "knob",
+      "cx": 690,
+      "cy": 477,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "sd-snappy-base.svg",
+        "cap": "sd-snappy-cap.svg"
+      },
+      "viewBox": [
+        650,
+        437,
+        80,
+        80
+      ],
+      "default_angle": 44.0
+    },
+    {
+      "id": "cy-decay",
+      "type": "knob",
+      "cx": 1460,
+      "cy": 477,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "cy-decay-base.svg",
+        "cap": "cy-decay-cap.svg"
+      },
+      "viewBox": [
+        1420,
+        437,
+        80,
+        80
+      ],
+      "default_angle": 128.0
+    },
+    {
+      "id": "oh-decay",
+      "type": "knob",
+      "cx": 1570,
+      "cy": 477,
+      "radius": 20,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "oh-decay-base.svg",
+        "cap": "oh-decay-cap.svg"
+      },
+      "viewBox": [
+        1530,
+        437,
+        80,
+        80
+      ],
+      "default_angle": 140.0
+    },
+    {
+      "id": "mode",
+      "type": "knob",
+      "cx": 148,
+      "cy": 296,
+      "radius": 36,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "mode-base.svg",
+        "cap": "mode-cap.svg"
+      },
+      "viewBox": [
+        96,
+        244,
+        104,
+        104
+      ],
+      "detents": [
+        165.556,
+        -57.3808,
+        -21.0375,
+        42.2737,
+        59.7436,
+        84.0355
+      ],
+      "detent_labels": [
+        "PATTERN CLEAR",
+        "1st PART",
+        "2nd PART",
+        "MANUAL PLAY",
+        "PLAY",
+        "COMPOSE"
+      ],
+      "positions": 6,
+      "detent_rule": "Printed destinations; discrete angles override continuous min/max",
+      "default_angle": -25.0
+    },
+    {
+      "id": "instrument-select",
+      "type": "knob",
+      "cx": 320,
+      "cy": 295,
+      "radius": 35,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "instrument-select-base.svg",
+        "cap": "instrument-select-cap.svg"
+      },
+      "viewBox": [
+        269,
+        244,
+        102,
+        102
+      ],
+      "detents": [
+        180.0,
+        -147.7629,
+        -116.9955,
+        -87.7543,
+        -59.0366,
+        -35.0958,
+        0.0,
+        35.0958,
+        59.0366,
+        87.7543,
+        116.9955,
+        147.7629
+      ],
+      "detent_labels": [
+        "AC",
+        "BD",
+        "SD",
+        "LT",
+        "MT",
+        "HT",
+        "RS",
+        "CP",
+        "CB",
+        "CY",
+        "OH",
+        "CH"
+      ],
+      "positions": 12,
+      "detent_rule": "Printed destinations; discrete angles override continuous min/max",
+      "default_angle": -30.0
+    },
+    {
+      "id": "auto-fill",
+      "type": "knob",
+      "cx": 330,
+      "cy": 435,
+      "radius": 34,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "auto-fill-base.svg",
+        "cap": "auto-fill-cap.svg"
+      },
+      "viewBox": [
+        280,
+        385,
+        100,
+        100
+      ],
+      "detents": [
+        -75.8989,
+        -46.6577,
+        -12.0115,
+        28.4898,
+        69.8879,
+        106.0908
+      ],
+      "detent_labels": [
+        "MANUAL",
+        "16",
+        "12",
+        "8",
+        "4",
+        "2"
+      ],
+      "positions": 6,
+      "detent_rule": "Printed destinations; discrete angles override continuous min/max",
+      "default_angle": 50.0
+    },
+    {
+      "id": "swing",
+      "type": "knob",
+      "cx": 184,
+      "cy": 610,
+      "radius": 73,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "swing-base.svg",
+        "cap": "swing-cap.svg"
+      },
+      "viewBox": [
+        69,
+        495,
+        230,
+        230
+      ],
+      "default_angle": -130
+    },
+    {
+      "id": "swing-fine",
+      "type": "knob",
+      "cx": 346,
+      "cy": 645,
+      "radius": 21,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "swing-fine-base.svg",
+        "cap": "swing-fine-cap.svg"
+      },
+      "viewBox": [
+        306,
+        605,
+        80,
+        80
+      ],
+      "default_angle": 0
+    },
+    {
+      "id": "master-volume",
+      "type": "knob",
+      "cx": 1735,
+      "cy": 657,
+      "radius": 39,
+      "min_angle": -135,
+      "max_angle": 135,
+      "asset": {
+        "base": "master-volume-base.svg",
+        "cap": "master-volume-cap.svg"
+      },
+      "viewBox": [
+        1680,
+        602,
+        110,
+        110
+      ],
+      "default_angle": 25.0
+    },
+    {
+      "id": "lt-select",
+      "type": "switch",
+      "x": 789,
+      "y": 500,
+      "width": 22,
+      "height": 48,
+      "positions": 2,
+      "asset": {
+        "pos0": "lt-select-pos0.svg",
+        "pos1": "lt-select-pos1.svg"
+      }
+    },
+    {
+      "id": "mt-select",
+      "type": "switch",
+      "x": 899,
+      "y": 500,
+      "width": 22,
+      "height": 48,
+      "positions": 2,
+      "asset": {
+        "pos0": "mt-select-pos0.svg",
+        "pos1": "mt-select-pos1.svg"
+      }
+    },
+    {
+      "id": "ht-select",
+      "type": "switch",
+      "x": 1009,
+      "y": 500,
+      "width": 22,
+      "height": 48,
+      "positions": 2,
+      "asset": {
+        "pos0": "ht-select-pos0.svg",
+        "pos1": "ht-select-pos1.svg"
+      }
+    },
+    {
+      "id": "rs-select",
+      "type": "switch",
+      "x": 1119,
+      "y": 500,
+      "width": 22,
+      "height": 48,
+      "positions": 2,
+      "asset": {
+        "pos0": "rs-select-pos0.svg",
+        "pos1": "rs-select-pos1.svg"
+      }
+    },
+    {
+      "id": "cp-select",
+      "type": "switch",
+      "x": 1229,
+      "y": 500,
+      "width": 22,
+      "height": 48,
+      "positions": 2,
+      "asset": {
+        "pos0": "cp-select-pos0.svg",
+        "pos1": "cp-select-pos1.svg"
+      }
+    },
+    {
+      "id": "pre-scale",
+      "type": "switch",
+      "x": 342,
+      "y": 790,
+      "width": 22,
+      "height": 48,
+      "positions": 4,
+      "asset": {
+        "pos0": "pre-scale-pos0.svg",
+        "pos1": "pre-scale-pos1.svg",
+        "pos2": "pre-scale-pos2.svg",
+        "pos3": "pre-scale-pos3.svg"
+      }
+    },
+    {
+      "id": "basic-variation",
+      "type": "lever",
+      "x": 152,
+      "y": 782,
+      "width": 80,
+      "height": 32,
+      "positions": 3,
+      "asset": {
+        "pos0": "basic-variation-pos0.svg",
+        "pos1": "basic-variation-pos1.svg",
+        "pos2": "basic-variation-pos2.svg"
+      }
+    },
+    {
+      "id": "if-variation",
+      "type": "lever",
+      "x": 1674,
+      "y": 782,
+      "width": 80,
+      "height": 32,
+      "positions": 2,
+      "asset": {
+        "pos0": "if-variation-pos0.svg",
+        "pos1": "if-variation-pos1.svg"
+      }
+    },
+    {
+      "id": "power",
+      "type": "switch",
+      "x": 118,
+      "y": 89,
+      "width": 61,
+      "height": 48,
+      "positions": 2,
+      "asset": {
+        "pos0": "power-pos0.svg",
+        "pos1": "power-pos1.svg"
+      }
+    },
+    {
+      "id": "var-a-led",
+      "type": "led",
+      "x": 157,
+      "y": 845,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "var-a-led-off.svg",
+        "on": "var-a-led-on.svg"
+      },
+      "viewBox": [
+        150,
+        838,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "var-b-led",
+      "type": "led",
+      "x": 214,
+      "y": 845,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "var-b-led-off.svg",
+        "on": "var-b-led-on.svg"
+      },
+      "viewBox": [
+        207,
+        838,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "part1-led",
+      "type": "led",
+      "x": 342,
+      "y": 906,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "part1-led-off.svg",
+        "on": "part1-led-on.svg"
+      },
+      "viewBox": [
+        335,
+        899,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "part2-led",
+      "type": "led",
+      "x": 342,
+      "y": 960,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "part2-led-off.svg",
+        "on": "part2-led-on.svg"
+      },
+      "viewBox": [
+        335,
+        953,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "track-clear-led",
+      "type": "led",
+      "x": 143,
+      "y": 390,
+      "width": 24,
+      "height": 24,
+      "asset": {
+        "off": "track-clear-led-off.svg",
+        "on": "track-clear-led-on.svg"
+      },
+      "viewBox": [
+        131,
+        378,
+        48,
+        48
+      ]
+    },
+    {
+      "id": "step-01",
+      "type": "button",
+      "x": 409,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-01-up.svg",
+        "down": "step-01-down.svg"
+      },
+      "viewBox": [
+        408,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-01-led",
+      "type": "led",
+      "x": 432.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-01-led-off.svg",
+        "on": "step-01-led-on.svg"
+      },
+      "viewBox": [
+        425.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-02",
+      "type": "button",
+      "x": 483,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-02-up.svg",
+        "down": "step-02-down.svg"
+      },
+      "viewBox": [
+        482,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-02-led",
+      "type": "led",
+      "x": 506.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-02-led-off.svg",
+        "on": "step-02-led-on.svg"
+      },
+      "viewBox": [
+        499.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-03",
+      "type": "button",
+      "x": 557,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-03-up.svg",
+        "down": "step-03-down.svg"
+      },
+      "viewBox": [
+        556,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-03-led",
+      "type": "led",
+      "x": 580.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-03-led-off.svg",
+        "on": "step-03-led-on.svg"
+      },
+      "viewBox": [
+        573.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-04",
+      "type": "button",
+      "x": 631,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-04-up.svg",
+        "down": "step-04-down.svg"
+      },
+      "viewBox": [
+        630,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-04-led",
+      "type": "led",
+      "x": 654.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-04-led-off.svg",
+        "on": "step-04-led-on.svg"
+      },
+      "viewBox": [
+        647.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-05",
+      "type": "button",
+      "x": 705,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-05-up.svg",
+        "down": "step-05-down.svg"
+      },
+      "viewBox": [
+        704,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-05-led",
+      "type": "led",
+      "x": 728.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-05-led-off.svg",
+        "on": "step-05-led-on.svg"
+      },
+      "viewBox": [
+        721.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-06",
+      "type": "button",
+      "x": 779,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-06-up.svg",
+        "down": "step-06-down.svg"
+      },
+      "viewBox": [
+        778,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-06-led",
+      "type": "led",
+      "x": 802.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-06-led-off.svg",
+        "on": "step-06-led-on.svg"
+      },
+      "viewBox": [
+        795.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-07",
+      "type": "button",
+      "x": 853,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-07-up.svg",
+        "down": "step-07-down.svg"
+      },
+      "viewBox": [
+        852,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-07-led",
+      "type": "led",
+      "x": 876.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-07-led-off.svg",
+        "on": "step-07-led-on.svg"
+      },
+      "viewBox": [
+        869.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-08",
+      "type": "button",
+      "x": 927,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-08-up.svg",
+        "down": "step-08-down.svg"
+      },
+      "viewBox": [
+        926,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-08-led",
+      "type": "led",
+      "x": 950.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-08-led-off.svg",
+        "on": "step-08-led-on.svg"
+      },
+      "viewBox": [
+        943.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-09",
+      "type": "button",
+      "x": 1001,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-09-up.svg",
+        "down": "step-09-down.svg"
+      },
+      "viewBox": [
+        1000,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-09-led",
+      "type": "led",
+      "x": 1024.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-09-led-off.svg",
+        "on": "step-09-led-on.svg"
+      },
+      "viewBox": [
+        1017.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-10",
+      "type": "button",
+      "x": 1075,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-10-up.svg",
+        "down": "step-10-down.svg"
+      },
+      "viewBox": [
+        1074,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-10-led",
+      "type": "led",
+      "x": 1098.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-10-led-off.svg",
+        "on": "step-10-led-on.svg"
+      },
+      "viewBox": [
+        1091.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-11",
+      "type": "button",
+      "x": 1149,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-11-up.svg",
+        "down": "step-11-down.svg"
+      },
+      "viewBox": [
+        1148,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-11-led",
+      "type": "led",
+      "x": 1172.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-11-led-off.svg",
+        "on": "step-11-led-on.svg"
+      },
+      "viewBox": [
+        1165.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-12",
+      "type": "button",
+      "x": 1223,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-12-up.svg",
+        "down": "step-12-down.svg"
+      },
+      "viewBox": [
+        1222,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-12-led",
+      "type": "led",
+      "x": 1246.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-12-led-off.svg",
+        "on": "step-12-led-on.svg"
+      },
+      "viewBox": [
+        1239.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-13",
+      "type": "button",
+      "x": 1297,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-13-up.svg",
+        "down": "step-13-down.svg"
+      },
+      "viewBox": [
+        1296,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-13-led",
+      "type": "led",
+      "x": 1320.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-13-led-off.svg",
+        "on": "step-13-led-on.svg"
+      },
+      "viewBox": [
+        1313.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-14",
+      "type": "button",
+      "x": 1371,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-14-up.svg",
+        "down": "step-14-down.svg"
+      },
+      "viewBox": [
+        1370,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-14-led",
+      "type": "led",
+      "x": 1394.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-14-led-off.svg",
+        "on": "step-14-led-on.svg"
+      },
+      "viewBox": [
+        1387.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-15",
+      "type": "button",
+      "x": 1445,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-15-up.svg",
+        "down": "step-15-down.svg"
+      },
+      "viewBox": [
+        1444,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-15-led",
+      "type": "led",
+      "x": 1468.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-15-led-off.svg",
+        "on": "step-15-led-on.svg"
+      },
+      "viewBox": [
+        1461.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "step-16",
+      "type": "button",
+      "x": 1519,
+      "y": 904,
+      "width": 61,
+      "height": 101,
+      "asset": {
+        "up": "step-16-up.svg",
+        "down": "step-16-down.svg"
+      },
+      "viewBox": [
+        1518,
+        903,
+        64,
+        107
+      ]
+    },
+    {
+      "id": "step-16-led",
+      "type": "led",
+      "x": 1542.0,
+      "y": 917,
+      "width": 14,
+      "height": 14,
+      "asset": {
+        "off": "step-16-led-off.svg",
+        "on": "step-16-led-on.svg"
+      },
+      "viewBox": [
+        1535.0,
+        910,
+        28,
+        28
+      ]
+    },
+    {
+      "id": "start-stop",
+      "type": "button",
+      "x": 115,
+      "y": 913,
+      "width": 146,
+      "height": 84,
+      "asset": {
+        "up": "start-stop-up.svg",
+        "down": "start-stop-down.svg"
+      },
+      "viewBox": [
+        114,
+        912,
+        149,
+        90
+      ],
+      "mode": "daw_transport_indicator"
+    },
+    {
+      "id": "tap",
+      "type": "button",
+      "x": 1670,
+      "y": 917,
+      "width": 80,
+      "height": 86,
+      "asset": {
+        "up": "tap-up.svg",
+        "down": "tap-down.svg"
+      },
+      "viewBox": [
+        1669,
+        916,
+        83,
+        92
+      ]
+    },
+    {
+      "id": "about",
+      "type": "button",
+      "hotspot": true,
+      "x": 1247.44,
+      "y": 93.68,
+      "width": 458.7,
+      "height": 61.38
+    }
+  ],
+  "notes": [
+    "Knob caps use 0 degrees straight up and clockwise-positive rotation.",
+    "Swing defaults to the printed 0 position (-130 degrees); fine swing defaults to straight up.",
+    "Discrete selector detents follow printed destinations and override the continuous range.",
+    "Mode maps six printed destinations; instrument-select maps twelve; auto-fill maps six.",
+    "Every LED has lens-only bounds and individual on/off state assets, with extra global margins for glow.",
+    "The About hotspot uses the unchanged printed brand and has no separate artwork.",
+    "The DAW stores plugin state and supplies the clock. START/STOP is a transport indicator and does not initiate playback."
+  ]
+}

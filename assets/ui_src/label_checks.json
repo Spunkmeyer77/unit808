@@ -1,0 +1,121 @@
+[
+  {
+    "label": "ACCENT",
+    "font_size": "16",
+    "width": 64.86,
+    "box_width": 101.0,
+    "padding": 18.07
+  },
+  {
+    "label": "BASS DRUM",
+    "font_size": "14",
+    "width": 84.24,
+    "box_width": 101.0,
+    "padding": 8.38
+  },
+  {
+    "label": "SNARE DRUM",
+    "font_size": "14",
+    "width": 93.0,
+    "box_width": 101.0,
+    "padding": 4.0
+  },
+  {
+    "label": "LOW TOM",
+    "font_size": "16",
+    "width": 78.02,
+    "box_width": 101.0,
+    "padding": 11.49
+  },
+  {
+    "label": "MID TOM",
+    "font_size": "16",
+    "width": 72.1,
+    "box_width": 101.0,
+    "padding": 14.45
+  },
+  {
+    "label": "HI TOM",
+    "font_size": "16",
+    "width": 58.01,
+    "box_width": 101.0,
+    "padding": 21.5
+  },
+  {
+    "label": "RIM SHOT",
+    "font_size": "16",
+    "width": 79.28,
+    "box_width": 101.0,
+    "padding": 10.86
+  },
+  {
+    "label": "HAND CLAP",
+    "font_size": "14",
+    "width": 81.72,
+    "box_width": 101.0,
+    "padding": 9.64
+  },
+  {
+    "label": "COW BELL",
+    "font_size": "16",
+    "width": 83.59,
+    "box_width": 101.0,
+    "padding": 8.71
+  },
+  {
+    "label": "CYMBAL",
+    "font_size": "16",
+    "width": 65.3,
+    "box_width": 101.0,
+    "padding": 17.85
+  },
+  {
+    "label": "OPEN HIHAT",
+    "font_size": "14",
+    "width": 85.46,
+    "box_width": 101.0,
+    "padding": 7.77
+  },
+  {
+    "label": "CLS\u2019D HIHAT",
+    "font_size": "14",
+    "width": 88.37,
+    "box_width": 101.0,
+    "padding": 6.32
+  },
+  {
+    "label": "LOW CONGA",
+    "font_size": "14",
+    "width": 88.31,
+    "box_width": 101.0,
+    "padding": 6.35
+  },
+  {
+    "label": "MID CONGA",
+    "font_size": "14",
+    "width": 83.13,
+    "box_width": 101.0,
+    "padding": 8.93
+  },
+  {
+    "label": "HI CONGA",
+    "font_size": "16",
+    "width": 80.91,
+    "box_width": 101.0,
+    "padding": 10.04
+  },
+  {
+    "label": "CLAVES",
+    "font_size": "16",
+    "width": 61.59,
+    "box_width": 101.0,
+    "padding": 19.71
+  },
+  {
+    "label": "MARACAS",
+    "font_size": "16",
+    "width": 78.16,
+    "box_width": 101.0,
+    "padding": 11.42
+  }
+]

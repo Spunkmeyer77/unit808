@@ -65,10 +65,15 @@ public:
     const unit808::Part& editedPart() const { return memory.rhythm[selectedSlot.load()].part[editVar()][editPart()]; }
     int  getTrack() const       { return getInstrument(); }        // INSTRUMENT-SELECT doubles as RHYTHM TRACK 1-12
     bool isStandalone() const   { return wrapperType == wrapperType_Standalone; }
+    // mute / solo per INSTRUMENT-SELECT position (AC can only be muted: it removes the accents)
+    static juce::String muteId (int inst)  { return juce::String ("mute-") + juce::String (kInstrumentNames[inst]).toLowerCase(); }
+    static juce::String soloId (int inst)  { return juce::String ("solo-") + juce::String (kInstrumentNames[inst]).toLowerCase(); }
+    bool isMuted (int inst) const  { return raw.mute[inst]->load() > 0.5f; }
+    bool isSoloed (int inst) const { return inst > 0 && raw.solo[inst]->load() > 0.5f; }
     bool isTransportRunning() const { return transportRunning.load(); }
 
     // ---- panel actions (message thread)
-    void stepKey (int key, juce::ModifierKeys mods);
+    void stepKey (int key, juce::ModifierKeys mods);   // Shift: step number, Alt: flam on / off
     void setStep (int key, bool on);          // drag painting in 1st / 2nd PART
     bool stepIsSet (int key) const;
     void tapKey();                            // write the instrument / fill-in trigger / add to the track
@@ -93,18 +98,24 @@ private:
     std::atomic<int> currentRhythm { 0 };
     bool cycleIsFill = false, wasPlaying = false;
     long long nextAbsStep = 0;
+    bool realignPending = false;
+    struct Pending { int samples; int voice; bool accent; };
+    std::vector<Pending> flamHits;   // main hits of flams, waiting their delay
     double lastQ = 0.0, internalPpq = 0.0;
     int lastMode = -1;
 
     struct Raw
     {
-        std::atomic<float> *mode, *instrument, *autoFill, *basicVar, *fillVar, *preScale, *power, *swing, *swingFine, *bpm;
+        std::atomic<float> *mode, *instrument, *autoFill, *basicVar, *fillVar, *preScale, *power, *swing, *flam, *bpm;
+        std::atomic<float> *mute[unit808::kNumRows] {}, *solo[unit808::kNumRows] {};
         std::atomic<float> *knob[23] {};
         std::atomic<float> *sw[5] {};
     } raw {};
 
     void pullParams();
     void buildCycle();
+    void realign();
+    bool voiceAllowed (int row) const;
     void advanceStep();
     void segmentFor (int slot, int varMode, std::vector<unit808::Segment>& out) const;
     int  partLength (const unit808::Segment& s) const;

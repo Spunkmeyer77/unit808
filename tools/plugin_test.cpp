@@ -209,6 +209,79 @@ int main (int argc, char** argv)
     check (! log.empty() && log.front().step == 4, "a host jump to beat 2 of a bar plays step 5");
     host.playing = false; run (4);
 
+    // ---- mode switch mid-bar keeps the place in the bar (no restart, no gap)
+    setParam ("mode", P::ManualPlay); proc.stepKey (0, none);
+    host.playing = true; host.ppq = 0.0; log.clear();
+    run (blocksPerBar / 2 + 3);                    // past step 8
+    setParam ("mode", P::FirstPart);
+    run (blocksPerBar / 4);
+    setParam ("mode", P::ManualPlay);
+    run (blocksPerBar / 4);
+    {
+        bool cont = log.size() >= 16;
+        for (size_t i = 1; i < log.size() && cont; ++i)
+        {
+            const long long gap = log[i].sample - log[i - 1].sample;
+            cont = std::llabs (gap - 6000) <= block && log[i].step == (log[i - 1].step + 1) % 16;
+        }
+        check (cont, "switching MODE while playing keeps every step in place (no restart, no gap)");
+    }
+    host.playing = false; run (2);
+
+    // ---- flam: Alt-click turns the flam of the selected instrument on a step on / off
+    setParam ("mode", P::FirstPart);
+    setParam ("instrument-select", 2.0f);          // SD
+    proc.stepKey (4, alt);
+    const auto& fp = proc.memory.rhythm[0].part[0][0];
+    check (fp.flam (2, 4) && fp.cell (2, 4) && ! fp.flam (1, 4), "Alt-click: flam on the snare's step 5 (only on the snare)");
+    proc.stepKey (6, alt);
+    check (fp.flam (2, 6) && fp.cell (2, 6), "Alt-click on an empty step writes the note with flam");
+    proc.stepKey (6, none);
+    check (! fp.cell (2, 6) && ! fp.flam (2, 6), "erasing a step removes its flam");
+    {
+        // the flammed snare plays twice: a soft grace note on the step and the main hit FLAM ms later
+        for (int i = 1; i < 12; ++i) if (i != 2) setParam (P::muteId (i).toRawUTF8(), 1.0f);
+        setParam ("flam", 1.0f);                   // 40 ms
+        auto playStep5 = [&] ()
+        {
+            host.playing = false; run (blocksPerBar * 3);   // let everything ring out
+            host.playing = true; host.ppq = 0.9; rec.clear();   // just before step 5 (beat 2)
+            run (60);
+            host.playing = false; run (2);
+            int t0 = 0; while (t0 < (int) rec.size() && std::abs (rec[(size_t) t0]) < 0.01f) ++t0;
+            double e = 0; for (int i = t0 + 1920; i < juce::jmin (t0 + 3360, (int) rec.size()); ++i) e += rec[(size_t) i] * rec[(size_t) i];
+            return std::sqrt (e / 1440.0);
+        };
+        const double withFlam = playStep5();
+        auto& wp = proc.memory.rhythm[0].part[0][0];
+        wp.setFlam (2, 4, false);
+        const double without = playStep5();
+        wp.setFlam (2, 4, true);
+        std::printf ("      40-70 ms after the step: with flam %.4f, without %.4f\n", withFlam, without);
+        check (withFlam > without * 1.5, "a flam adds the main hit FLAM (40 ms) after the grace note");
+        for (int i = 1; i < 12; ++i) setParam (P::muteId (i).toRawUTF8(), 0.0f);
+    }
+
+    // ---- mute / solo
+    {
+        auto peakOf = [&] () { host.playing = false; run (blocksPerBar * 3); host.playing = true; host.ppq = 0.0; rec.clear(); run (blocksPerBar); host.playing = false; run (2);
+                                float pk = 0; for (float v : rec) pk = juce::jmax (pk, std::abs (v)); return pk; };
+        setParam ("mode", P::ManualPlay); proc.stepKey (0, none);
+        const float all = peakOf();
+        for (int i = 1; i < 12; ++i) setParam (P::muteId (i).toRawUTF8(), 1.0f);
+        const float muted = peakOf();
+        for (int i = 1; i < 12; ++i) setParam (P::muteId (i).toRawUTF8(), 0.0f);
+        setParam ("solo-cb", 1.0f);                // the rhythm has no cow bell: soloing it silences the rest
+        const float soloEmpty = peakOf();
+        setParam ("solo-cb", 0.0f);
+        setParam ("solo-bd", 1.0f);
+        const float soloBd = peakOf();
+        setParam ("solo-bd", 0.0f);
+        std::printf ("      all %.4f muted %.6f soloEmpty %.6f soloBd %.4f\n", all, muted, soloEmpty, soloBd);
+        check (all > 0.05f && muted < 1e-4f, "muting every instrument silences the rhythm");
+        check (soloEmpty < 1e-4f && soloBd > 0.05f, "solo plays only the soloed instruments");
+    }
+
     // ---- pattern clear: clears the chosen rhythm
     setParam ("mode", P::PatternClear); proc.stepKey (1, none); proc.clearKey (none);
     check (proc.memory.rhythm[1].part[0][0].empty(), "Pattern Clear + CLEAR clears the rhythm");
@@ -244,8 +317,9 @@ int main (int argc, char** argv)
         const auto& o = other.memory.rhythm[0];
         check (o.part[0][0].rows[1].load() == proc.memory.rhythm[0].part[0][0].rows[1].load() && o.part[0][1].length.load() == 16
                    && o.part[1][0].rows[1].load() == 0x0101 && other.memory.rhythm[12].part[0][0].rows[2].load() == 0x5555
+                   && other.memory.rhythm[0].part[0][0].flam (2, 4)
                    && std::abs (other.apvts.getRawParameterValue ("bd-decay")->load() - 0.9f) < 1e-4f,
-               "state: rhythms, parts, lengths and knobs are saved with the project");
+               "state: rhythms, parts, lengths, flams and knobs are saved with the project");
     }
     check (bad == 0, "no NaN / Inf in the output");
 
@@ -283,6 +357,22 @@ int main (int argc, char** argv)
             juce::PNGImageFormat png;
             if (auto os = std::unique_ptr<juce::OutputStream> (f.createOutputStream())) png.writeImageToStream (img, *os);
         }
+    }
+
+    // ---- a snapshot showing mute (CB), solo (SD), the selected channel (SD) and flam steps (blue)
+    {
+        setParam ("mode", P::FirstPart);
+        setParam ("instrument-select", 2.0f);
+        proc.stepKey (12, alt);
+        setParam ("mute-cb", 1.0f); setParam ("solo-sd", 1.0f);
+        std::unique_ptr<juce::AudioProcessorEditor> ed (proc.createEditor());
+        ed->setSize (1870, 1090);
+        auto img = ed->createComponentSnapshot (ed->getLocalBounds(), true, 1.0f);
+        auto f = outDir.getChildFile ("editor_features.png");
+        f.deleteFile();
+        juce::PNGImageFormat png;
+        if (auto os = std::unique_ptr<juce::OutputStream> (f.createOutputStream())) png.writeImageToStream (img, *os);
+        setParam ("mute-cb", 0.0f); setParam ("solo-sd", 0.0f);
     }
 
     std::printf ("\n%s (%d failure%s)\n", failures == 0 ? "ALL PASSED" : "FAILED", failures, failures == 1 ? "" : "s");

@@ -53,7 +53,7 @@ Knob::Knob (const Ctrl& c, float minAngle, float maxAngle)
     setBounds (boundsOf (c.a[0]));
     setMouseDragSensitivity (c.r > 50 ? 320 : 220);
     setVelocityBasedMode (false);
-    setScrollWheelEnabled (true);
+    setScrollWheelEnabled (false);   // knobs are turned by dragging only
     setMouseCursor (juce::MouseCursor::PointingHandCursor);
 }
 
@@ -87,6 +87,29 @@ Selector::Selector (const Ctrl& c, juce::RangedAudioParameter& p)
 void Selector::paint (juce::Graphics& g)
 {
     const juce::Point<float> o ((float) getX(), (float) getY());
+    // mute / solo on the printed labels: dimmed = muted, red glow = soloed
+    if (labelState)
+        for (int i = 0; i < (int) labels.size(); ++i)
+        {
+            const int st = labelState (i);
+            if (st == 0) continue;
+            auto r = labels[(size_t) i] - o;
+            if (st == 1)
+            {
+                g.setColour (juce::Colour (0xff1c1e1e).withAlpha (0.72f));
+                g.fillRoundedRectangle (r, 2.0f);
+            }
+            else
+            {
+                const juce::Colour red (0xffff2a10);
+                g.setGradientFill (juce::ColourGradient (red.withAlpha (0.55f), r.getCentre(), red.withAlpha (0.0f), r.getCentre().translated (r.getWidth() * 0.9f, 0), true));
+                g.fillEllipse (r.expanded (r.getWidth() * 0.45f, r.getHeight() * 0.9f));
+                g.setColour (red.withAlpha (0.35f));
+                g.fillRoundedRectangle (r, 2.0f);
+                g.setColour (red.brighter (0.2f));
+                g.drawRoundedRectangle (r.expanded (0.5f), 2.0f, 1.6f);
+            }
+        }
     drawAt (g, base, ctrl.a[0], o);
     const float a = ctrl.detents[index] * kPi / 180.0f;
     drawAt (g, cap, ctrl.a[1], o, juce::AffineTransform::rotation (a, ctrl.cx - o.x, ctrl.cy - o.y));
@@ -113,11 +136,28 @@ void Selector::pickAt (juce::Point<float> p)
     if (best != index) att.setValueAsCompleteGesture ((float) best);
 }
 
-void Selector::mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails& w)
+void Selector::mouseDown (const juce::MouseEvent& e)
 {
-    const int dir = (w.deltaY + w.deltaX) > 0 ? 1 : -1;
-    const int n = juce::jlimit (0, ctrl.nDetents - 1, index + dir);
-    if (n != index) att.setValueAsCompleteGesture ((float) n);
+    labelClick = false;
+    const auto m = e.mods;
+    if (onLabel && (m.isAltDown() || m.isShiftDown() || m.isPopupMenu()))
+    {
+        const auto p = e.position + getPosition().toFloat();
+        for (int i = 0; i < (int) labels.size(); ++i)
+            if (labels[(size_t) i].expanded (3.0f).contains (p)) { labelClick = true; onLabel (i, m); return; }
+        if (m.isPopupMenu()) return;
+    }
+    pickAt (e.position);
+}
+
+void ChannelLabel::paint (juce::Graphics& g)
+{
+    // the selected instrument's name window gets a thin orange frame
+    if (isSelected && isSelected (instrument))
+    {
+        g.setColour (juce::Colour (0xfff47c39));
+        g.drawRoundedRectangle (getLocalBounds().toFloat().reduced (1.0f), 4.0f, 2.2f);
+    }
 }
 
 // ---------------------------------------------------------------------------------------------- Switch
@@ -166,7 +206,19 @@ void Switch::mouseDrag (const juce::MouseEvent& e)
 Key::Key (const Ctrl& c, const Ctrl* l) : ctrl (c), led (l)
 {
     up = image (c.a[0]); dn = image (c.a[1]);
-    if (led) { ledOff = image (led->a[0]); ledOnImg = image (led->a[1]); }
+    if (led)
+    {
+        ledOff = image (led->a[0]); ledOnImg = image (led->a[1]);
+        // the flam colour: the lit red LED with its red and blue swapped (same lens, same glow)
+        ledBlue = ledOnImg.createCopy();
+        juce::Image::BitmapData bd (ledBlue, juce::Image::BitmapData::readWrite);
+        for (int y = 0; y < bd.height; ++y)
+            for (int x = 0; x < bd.width; ++x)
+            {
+                const auto c = bd.getPixelColour (x, y);
+                bd.setPixelColour (x, y, juce::Colour (c.getBlue(), (juce::uint8) juce::jmin (255, c.getGreen() + c.getRed() / 4), c.getRed(), c.getAlpha()));
+            }
+    }
     setBounds (boundsOf (c.a[0]).getUnion (boundsOf (c.a[1])));
     setMouseCursor (juce::MouseCursor::PointingHandCursor);
 }
@@ -178,9 +230,9 @@ void Key::paint (juce::Graphics& g)
     drawAt (g, d ? dn : up, ctrl.a[d ? 1 : 0], o);
     if (led)
     {
-        const bool on = ledOn && ledOn();
+        const int st = ledState ? ledState() : 0;
         // the LED sits on the key cap and moves down with it
-        drawAt (g, on ? ledOnImg : ledOff, led->a[on ? 1 : 0], o, juce::AffineTransform::translation (0, d ? 2.0f : 0.0f));
+        drawAt (g, st == 2 ? ledBlue : (st == 1 ? ledOnImg : ledOff), led->a[st > 0 ? 1 : 0], o, juce::AffineTransform::translation (0, d ? 2.0f : 0.0f));
     }
 }
 
@@ -305,13 +357,12 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
         { "ch-level", "ch-level", "Closed Hi-hat level", -135, 135 },
         { "master-volume", "master-volume", "Master volume", -135, 135 },
         { "swing", "swing", "Swing: delays every second step (0 = straight). Tempo always follows your DAW", -130, 130 },
-        { "swing-fine", "swing-fine", "Fine swing: a little less or more swing", -135, 135 } };
+        { "swing-fine", "flam", "", -135, 135 } };
     for (auto& k : kd)
     {
         const Ctrl* c = find (k.id);
         if (c == nullptr) continue;
         auto s = std::make_unique<Knob> (*c, k.minA, k.maxA);
-        s->setTooltip (k.tip);
         s->setPopupDisplayEnabled (true, true, &content, 900);
         content.addAndMakeVisible (*s);
         knobAtts.push_back (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (proc.apvts, k.param, *s));
@@ -325,9 +376,40 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
                             { "auto-fill", "MEASURES AUTO FILL IN: play the intro/fill pattern every 16, 12, 8, 4 or 2 measures (Manual = off)" } })
     {
         auto s = std::make_unique<Selector> (*find (id), *proc.apvts.getParameter (id));
-        s->setTooltip (tip);
+        (void) tip;
+        if (juce::String (id) == "instrument-select")
+        {
+            // the printed AC..CH label windows around INSTRUMENT-SELECT: Alt-click mute, Shift-click solo, right-click menu
+            static const float lx[12] = { 305, 269, 242.65f, 233, 242.65f, 269, 305, 341, 367.35f, 377, 367.35f, 341 };
+            static const float ly[12] = { 348, 339.02f, 314.5f, 281, 247.5f, 231, 231, 231, 247.5f, 281, 314.5f, 339.02f };
+            for (int i = 0; i < 12; ++i) s->labels.push_back ({ lx[i], ly[i], 30.0f, 16.0f });
+            s->onLabel = [this] (int i, juce::ModifierKeys m) { instrumentLabelClick (i, m); };
+            s->labelState = [this] (int i) { return proc.isSoloed (i) ? 2 : (proc.isMuted (i) ? 1 : 0); };
+        }
         content.addAndMakeVisible (*s);
         selectors.push_back (std::move (s));
+    }
+    // the instrument name windows on the channels select the instrument for writing (as INSTRUMENT-SELECT)
+    {
+        auto select = [this] (int inst)
+        {
+            auto* prm = proc.apvts.getParameter ("instrument-select");
+            prm->beginChangeGesture();
+            prm->setValueNotifyingHost (prm->convertTo0to1 ((float) inst));
+            prm->endChangeGesture();
+        };
+        for (int i = 0; i < 12; ++i)   // ACCENT, BASS DRUM ... CLS'D HIHAT
+        {
+            channelLabels.push_back (std::make_unique<ChannelLabel> (juce::Rectangle<float> (419.5f + 110.0f * (float) i, 553.0f, 101.0f, 34.0f), i));
+            if (i >= 3 && i <= 7)      // LOW CONGA, MID CONGA, HI CONGA, CLAVES, MARACAS above
+                channelLabels.push_back (std::make_unique<ChannelLabel> (juce::Rectangle<float> (419.5f + 110.0f * (float) i, 457.0f, 101.0f, 34.0f), i));
+        }
+        for (auto& l : channelLabels)
+        {
+            l->onClick = select;
+            l->isSelected = [this] (int i) { return proc.getInstrument() == i; };
+            content.addAndMakeVisible (*l);
+        }
     }
     // switches and levers
     struct SD { const char* id; bool horiz; std::vector<int> map; const char* tip; };
@@ -342,7 +424,6 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
     for (auto& s : sd)
     {
         auto w = std::make_unique<Switch> (*find (s.id), *proc.apvts.getParameter (s.id), s.horiz, s.map);
-        w->setTooltip (s.tip);
         content.addAndMakeVisible (*w);
         switches.push_back (std::move (w));
     }
@@ -351,11 +432,11 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
     {
         const juce::String id = juce::String ("step-") + (s < 9 ? "0" : "") + juce::String (s + 1);
         auto k = std::make_unique<Key> (*find (id.toRawUTF8()), find ((id + "-led").toRawUTF8()));
-        k->ledOn = [this, s] { return stepLedOn (s); };
+        k->ledState = [this, s] { return stepLed (s); };
         k->onPress = [this, s] (juce::ModifierKeys m)
         {
             const bool write = proc.getMode() == Unit808Processor::FirstPart || proc.getMode() == Unit808Processor::SecondPart;
-            const bool stepNumber = m.isShiftDown() || proc.isStepNumberArmed();
+            const bool stepNumber = m.isShiftDown() || m.isAltDown() || proc.isStepNumberArmed();
             proc.stepKey (s, m);
             paintValue = (write && ! stepNumber) ? (proc.stepIsSet (s) ? 1 : 0) : -1;   // drag on to paint the same state
             paintedKeys = 1u << s;
@@ -363,23 +444,17 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
         };
         k->onDrag = [this] (juce::Point<float> pos) { stepKeyDragTo (pos); };
         k->onRelease = [this] { paintValue = -1; paintedKeys = 0; };
-        k->setTooltip (s < 12 ? "Step key. Manual Play: choose basic rhythm " + juce::String (s + 1) + ". 1st/2nd Part: set the step. Shift-click: step number (last step)"
-                              : "Step key. Manual Play: choose intro/fill pattern " + juce::String (s - 11) + ". 1st/2nd Part: set the step");
         content.addAndMakeVisible (*k);
         stepKeys.push_back (std::move (k));
     }
     startStop = std::make_unique<Key> (*find ("start-stop"));
     startStop->heldDown = [this] { return proc.isTransportRunning(); };
     startStop->onPress = [this] (juce::ModifierKeys m) { if (m.isPopupMenu()) startStopMenu(); else proc.startStopKey(); };
-    startStop->setTooltip (proc.isStandalone() ? "START/STOP. Right-click: tempo" : "START/STOP shows your DAW's transport: UNIT808 plays when the song plays");
     tap = std::make_unique<Key> (*find ("tap"));
     tap->onPress = [this] (juce::ModifierKeys) { proc.tapKey(); content.repaint(); };
-    tap->setTooltip ("TAP: fill in trigger (plays the intro/fill next), tap-write in 1st/2nd Part, add the rhythm to the track in Compose");
     clear = std::make_unique<Key> (*find ("track-clear-led"));
     clear->heldDown = [this] { return proc.isStepNumberArmed(); };
     clear->onPress = [this] (juce::ModifierKeys m) { proc.clearKey (m); content.repaint(); };
-    clear->setTooltip ("CLEAR. Pattern Clear: clears the rhythm (variation by the lever). Compose: clears the track. "
-                       "1st/2nd Part: then a step key = step number; Alt-click clears the selected instrument");
     for (auto* k : { startStop.get(), tap.get(), clear.get() }) content.addAndMakeVisible (*k);
 
     auto led = [] (const char* id) { const Ctrl* c = find (id); return Led { c, image (c->a[0]), image (c->a[1]) }; };
@@ -412,9 +487,9 @@ void Unit808Editor::Content::mouseUp (const juce::MouseEvent& e)
     }
 }
 
-bool Unit808Editor::stepLedOn (int s) const
+int Unit808Editor::stepLed (int s) const
 {
-    if (! proc.isPowerOn()) return false;
+    if (! proc.isPowerOn()) return 0;
     const int play = proc.getPlayStep();
     const bool blink = (juce::Time::getMillisecondCounter() / 180) % 2 == 0;
     switch (proc.getMode())
@@ -424,17 +499,19 @@ bool Unit808Editor::stepLedOn (int s) const
         {
             const auto& part = proc.editedPart();
             const int len = part.length.load() == 0 ? 16 : part.length.load();
-            if (s >= len) return false;
-            const bool on = part.cell (proc.getInstrument(), s);
+            if (s >= len) return 0;
+            const int inst = proc.getInstrument();
+            const bool on = part.cell (inst, s);
             const bool here = play >= 0 && proc.getPlaySlot() == proc.getSelectedSlot() && proc.getPlayPart() == proc.editPart();
-            return (here && s == play) ? ! on : on;   // the playing step shows inverted
+            if (here && s == play) return on ? 0 : 1;              // the playing step shows inverted
+            return on ? (part.flam (inst, s) ? 2 : 1) : 0;         // blue = flam
         }
         default:
         {
-            if (s == play) return true;                                     // the running light
-            if (s == proc.getPendingSlot()) return blink;                   // queued for the next measure
-            if (s >= unit808::kFirstFill && s == proc.getSelectedFill()) return proc.isFillRequested() ? blink : true;
-            return s == proc.getSelectedSlot();
+            if (s == play) return 1;                                        // the running light
+            if (s == proc.getPendingSlot()) return blink ? 1 : 0;           // queued for the next measure
+            if (s >= unit808::kFirstFill && s == proc.getSelectedFill()) return (proc.isFillRequested() ? blink : true) ? 1 : 0;
+            return s == proc.getSelectedSlot() ? 1 : 0;
         }
     }
 }
@@ -472,6 +549,60 @@ void Unit808Editor::timerCallback()
         startStop->repaint(); clear->repaint();
         content.repaint (juce::Rectangle<int> (140, 830, 240, 150));
     }
+    // mute / solo windows and the selected channel name (they can change from automation too)
+    int ms = proc.getInstrument() << 24;
+    for (int i = 0; i < 12; ++i) ms |= (proc.isMuted (i) ? 1 : 0) << i | (proc.isSoloed (i) ? 1 : 0) << (i + 12);
+    if (ms != lastMuteSolo)
+    {
+        lastMuteSolo = ms;
+        for (auto& sel : selectors) sel->repaint();
+        for (auto& l : channelLabels) l->repaint();
+    }
+}
+
+void Unit808Editor::toggleParam (const juce::String& id)
+{
+    if (auto* p = proc.apvts.getParameter (id))
+    {
+        p->beginChangeGesture();
+        p->setValueNotifyingHost (p->getValue() > 0.5f ? 0.0f : 1.0f);
+        p->endChangeGesture();
+    }
+    for (auto& sel : selectors) sel->repaint();
+}
+
+// Option/Alt-click a label: mute. Shift-click: solo (several at once). Right-click: menu. AC can only be muted.
+void Unit808Editor::instrumentLabelClick (int inst, juce::ModifierKeys m)
+{
+    static const char* names[12] = { "Accent", "Bass Drum", "Snare Drum", "Low Tom / Conga", "Mid Tom / Conga", "Hi Tom / Conga",
+                                     "Rim Shot / Claves", "Hand Clap / Maracas", "Cow Bell", "Cymbal", "Open Hi-hat", "Closed Hi-hat" };
+    if (m.isPopupMenu())
+    {
+        juce::PopupMenu menu;
+        menu.addSectionHeader (names[inst]);
+        menu.addItem (1, "Mute", true, proc.isMuted (inst));
+        if (inst > 0) menu.addItem (2, "Solo", true, proc.isSoloed (inst));
+        menu.addSeparator();
+        bool any = false;
+        for (int i = 0; i < 12; ++i) any |= proc.isMuted (i) || proc.isSoloed (i);
+        menu.addItem (3, "Clear all mutes and solos", any);
+        menu.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this),
+                            [safe = juce::Component::SafePointer<Unit808Editor> (this), inst] (int r)
+                            {
+                                if (safe == nullptr || r <= 0) return;
+                                if (r == 1) safe->toggleParam (Unit808Processor::muteId (inst));
+                                if (r == 2) safe->toggleParam (Unit808Processor::soloId (inst));
+                                if (r == 3)
+                                    for (int i = 0; i < 12; ++i)
+                                    {
+                                        if (safe->proc.isMuted (i)) safe->toggleParam (Unit808Processor::muteId (i));
+                                        if (safe->proc.isSoloed (i)) safe->toggleParam (Unit808Processor::soloId (i));
+                                    }
+                            });
+        return;
+    }
+    if (m.isShiftDown()) { if (inst > 0) toggleParam (Unit808Processor::soloId (inst)); }
+    else if (m.isAltDown()) toggleParam (Unit808Processor::muteId (inst));
 }
 
 void Unit808Editor::stepKeyDragTo (juce::Point<float> pos)

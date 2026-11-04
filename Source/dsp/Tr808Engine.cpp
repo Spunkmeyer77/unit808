@@ -33,6 +33,12 @@ void Engine::trigger(Voice v, bool accent) {
     trigAlt[v] = -1;
 }
 
+void Engine::triggerLevel(Voice v, bool accent, double scale) {
+    double amp = (accent ? 1.0 : (1.0 - P.accent) + P.accent * 90.0 / 127.0) * scale;
+    trig[v] = std::max(trig[v], amp);
+    trigAlt[v] = -1;
+}
+
 void Engine::triggerVelocity(Voice v, int vel, int alt) {
     // MIDI path: expr (1.-$f2)+$f2*$f1/127.
     double amp = (1.0 - P.accent) + P.accent * std::clamp(vel, 1, 127) / 127.0;

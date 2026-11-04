@@ -24,17 +24,20 @@ private:
 };
 
 // Selector knobs (MODE, INSTRUMENT-SELECT, AUTO FILL IN): snap to the printed positions.
-// Click or drag towards a label to turn it there; the mouse wheel steps through.
-class Selector : public juce::Component, public juce::SettableTooltipClient
+// Click or drag towards a label to turn it there.
+class Selector : public juce::Component
 {
 public:
     Selector (const Ctrl& c, juce::RangedAudioParameter& p);
     void paint (juce::Graphics&) override;
     bool hitTest (int x, int y) override;
-    void mouseDown (const juce::MouseEvent& e) override { pickAt (e.position); }
-    void mouseDrag (const juce::MouseEvent& e) override { pickAt (e.position); }
-    void mouseWheelMove (const juce::MouseEvent&, const juce::MouseWheelDetails& w) override;
+    void mouseDown (const juce::MouseEvent& e) override;
+    void mouseDrag (const juce::MouseEvent& e) override { if (! labelClick) pickAt (e.position); }
     void mouseDoubleClick (const juce::MouseEvent&) override {}
+    // printed position labels (panel coordinates): Alt / Shift / right-click on one calls onLabel (mute / solo)
+    std::vector<juce::Rectangle<float>> labels;
+    std::function<void (int index, juce::ModifierKeys)> onLabel;
+    std::function<int (int index)> labelState;   // 0 normal, 1 muted (dimmed), 2 soloed (red glow)
     const Ctrl& ctrl;
     int getIndex() const { return index; }
 private:
@@ -42,11 +45,25 @@ private:
     juce::ParameterAttachment att;
     juce::Image base, cap;
     int index = 0;
+    bool labelClick = false;
     void pickAt (juce::Point<float> p);
 };
 
+// An instrument name window on a sound channel: clicking it selects that instrument for writing
+class ChannelLabel : public juce::Component
+{
+public:
+    ChannelLabel (juce::Rectangle<float> r, int inst) : instrument (inst) { setBounds (r.expanded (3.0f).getSmallestIntegerContainer());
+                                                                             setMouseCursor (juce::MouseCursor::PointingHandCursor); }
+    void paint (juce::Graphics&) override;
+    void mouseDown (const juce::MouseEvent&) override { if (onClick) onClick (instrument); }
+    std::function<void (int)> onClick;
+    std::function<bool (int)> isSelected;
+    const int instrument;
+};
+
 // Toggle switches and levers: one image per position
-class Switch : public juce::Component, public juce::SettableTooltipClient
+class Switch : public juce::Component
 {
 public:
     // imageForValue[v] = which position image shows parameter value v
@@ -66,7 +83,7 @@ private:
 };
 
 // A key from the artwork (up / down images); optional LED drawn on top
-class Key : public juce::Component, public juce::SettableTooltipClient
+class Key : public juce::Component
 {
 public:
     explicit Key (const Ctrl& c, const Ctrl* led = nullptr);
@@ -77,11 +94,12 @@ public:
     std::function<void (juce::ModifierKeys)> onPress;
     std::function<void (juce::Point<float>)> onDrag;
     std::function<void()> onRelease;
-    std::function<bool()> ledOn, heldDown;
+    std::function<int()> ledState;       // 0 off, 1 red, 2 blue (flam)
+    std::function<bool()> heldDown;
     const Ctrl& ctrl;
 private:
     const Ctrl* led;
-    juce::Image up, dn, ledOff, ledOnImg;
+    juce::Image up, dn, ledOff, ledOnImg, ledBlue;
     bool down = false;
 };
 
@@ -130,16 +148,18 @@ private:
     std::vector<std::unique_ptr<unit808ui::Key>> stepKeys;
     std::unique_ptr<unit808ui::Key> startStop, tap, clear;
     unit808ui::AboutOverlay about;
-    juce::TooltipWindow tooltips { this, 700 };
+    std::vector<std::unique_ptr<unit808ui::ChannelLabel>> channelLabels;
     struct Led { const unit808ui::Ctrl* c; juce::Image off, on; };
     Led varA, varB, part1, part2;
-    int lastUi = -1;
+    int lastUi = -1, lastMuteSolo = -1;
     int paintValue = -1;
     uint32_t paintedKeys = 0;
 
     void paintPanel (juce::Graphics&);
     void timerCallback() override;
-    bool stepLedOn (int s) const;
+    int stepLed (int s) const;
+    void instrumentLabelClick (int inst, juce::ModifierKeys m);
+    void toggleParam (const juce::String& id);
     void stepKeyDragTo (juce::Point<float>);
     void startStopMenu();
 

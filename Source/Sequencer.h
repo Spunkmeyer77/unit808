@@ -16,10 +16,15 @@ constexpr int kFirstFill = 12;
 // One part of one variation of one rhythm: up to 16 steps.
 struct Part {
     std::atomic<uint16_t> rows[kNumRows] {};
+    std::atomic<uint16_t> flams[kNumRows] {};   // per instrument and step: play this hit as a flam
     std::atomic<int> length { 16 };      // 1..16; for the 2nd part 0 = not used
     bool cell(int r, int s) const { return (rows[r].load() >> s) & 1; }
-    void set(int r, int s, bool on) { uint16_t v = rows[r].load(); v = on ? (uint16_t)(v | (1u << s)) : (uint16_t)(v & ~(1u << s)); rows[r] = v; }
-    void clear() { for (auto& r : rows) r = 0; }
+    bool flam(int r, int s) const { return (flams[r].load() >> s) & 1; }
+    static void setBit(std::atomic<uint16_t>& a, int s, bool on) { uint16_t v = a.load(); v = on ? (uint16_t)(v | (1u << s)) : (uint16_t)(v & ~(1u << s)); a = v; }
+    void set(int r, int s, bool on) { setBit(rows[r], s, on); if (! on) setBit(flams[r], s, false); }
+    void setFlam(int r, int s, bool on) { setBit(flams[r], s, on); if (on) setBit(rows[r], s, true); }
+    void clearRow(int r) { rows[r] = 0; flams[r] = 0; }
+    void clear() { for (auto& r : rows) r = 0; for (auto& f : flams) f = 0; }
     bool empty() const { for (auto& r : rows) if (r.load()) return false; return true; }
 };
 

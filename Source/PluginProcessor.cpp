@@ -10,7 +10,7 @@ struct KnobDef { const char* id; const char* name; float def; };
 const KnobDef kKnobs[23] = {
     { "ac-level", "Accent", 0.6f },
     { "bd-level", "BD Level", 0.5f }, { "bd-tone", "BD Tone", 0.5f }, { "bd-decay", "BD Decay", 0.32f },
-    { "sd-level", "SD Level", 0.39f }, { "sd-tone", "SD Tone", 1.0f }, { "sd-snappy", "SD Snappy", 0.6f },
+    { "sd-level", "SD Level", 0.3f }, { "sd-tone", "SD Tone", 1.0f }, { "sd-snappy", "SD Snappy", 0.6f },
     { "lt-level", "LT/LC Level", 0.45f }, { "lt-tuning", "LT/LC Tuning", 0.386f },
     { "mt-level", "MT/MC Level", 0.42f }, { "mt-tuning", "MT/MC Tuning", 0.32f },
     { "ht-level", "HT/HC Level", 0.40f }, { "ht-tuning", "HT/HC Tuning", 0.314f },
@@ -43,9 +43,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout Unit808Processor::createLayo
                                                                    { "Hi Tom", "Hi Conga" }, { "Rim Shot", "Claves" }, { "Hand Clap", "Maracas" } }; return juce::String (a[i][v ? 1 : 0]); })));
     l.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { "swing", 1 }, "Swing", juce::NormalisableRange<float> (0.0f, 1.0f), 0.0f,
                                                         juce::AudioParameterFloatAttributes().withStringFromValueFunction (tenths)));
-    l.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { "swing-fine", 1 }, "Fine Swing", juce::NormalisableRange<float> (-1.0f, 1.0f), 0.0f,
+    // FLAM: the time between the grace note and the main hit of flammed steps, 5 .. 40 ms
+    l.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { "flam", 1 }, "Flam", juce::NormalisableRange<float> (0.0f, 1.0f), 0.4f,
                                                         juce::AudioParameterFloatAttributes().withStringFromValueFunction (
-                                                            [] (float v, int) { return (v > 0.005f ? "+" : "") + juce::String (v * 10.0f, 1); })));
+                                                            [] (float v, int) { return juce::String (5.0f + 35.0f * v, 1) + " ms"; })));
+    for (int i = 0; i < kNumRows; ++i)
+    {
+        l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { muteId (i), 1 }, juce::String (kInstrumentNames[i]) + " Mute", false));
+        if (i > 0) l.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { soloId (i), 1 }, juce::String (kInstrumentNames[i]) + " Solo", false));
+    }
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "mode", 1 }, "Mode",
         juce::StringArray { "Pattern Clear", "1st Part", "2nd Part", "Manual Play", "Play", "Compose" }, ManualPlay));
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "instrument-select", 1 }, "Instrument Select",
@@ -72,7 +78,13 @@ Unit808Processor::Unit808Processor()
     for (int i = 0; i < 5; ++i) raw.sw[i] = p (kSwitchIds[i]);
     raw.mode = p ("mode"); raw.instrument = p ("instrument-select"); raw.autoFill = p ("auto-fill");
     raw.basicVar = p ("basic-variation"); raw.fillVar = p ("if-variation"); raw.preScale = p ("pre-scale");
-    raw.power = p ("power"); raw.swing = p ("swing"); raw.swingFine = p ("swing-fine"); raw.bpm = p ("standalone-bpm");
+    raw.power = p ("power"); raw.swing = p ("swing"); raw.flam = p ("flam");
+    for (int i = 0; i < kNumRows; ++i)
+    {
+        raw.mute[i] = apvts.getRawParameterValue (muteId (i));
+        raw.solo[i] = i > 0 ? apvts.getRawParameterValue (soloId (i)) : raw.mute[i];
+    }
+    flamHits.reserve (64); raw.bpm = p ("standalone-bpm");
     cycle.reserve (8);
 }
 
@@ -118,6 +130,12 @@ void Unit808Processor::stepKey (int key, juce::ModifierKeys mods)
         {
             part.length = key + 1;          // STEP NUMBER: CLEAR (or Shift) + step key = the part's last step
             stepNumberArmed = false;
+        }
+        else if (mods.isAltDown() && getInstrument() > 0)
+        {
+            // FLAM: Alt/Option-click turns the flam of the selected instrument on this step on / off
+            if (editPart() == 1 && part.length.load() == 0) part.length = 16;
+            part.setFlam (getInstrument(), key, ! part.flam (getInstrument(), key));
         }
         else
         {
@@ -185,7 +203,7 @@ void Unit808Processor::clearKey (juce::ModifierKeys mods)
         if (mods.isAltDown())          // clear the selected instrument in this part
         {
             auto& part = memory.rhythm[selectedSlot.load()].part[editVar()][editPart()];
-            part.rows[getInstrument()] = 0;
+            part.clearRow (getInstrument());
             ++memory.version;
         }
         else stepNumberArmed = ! stepNumberArmed.load();
@@ -255,11 +273,38 @@ void Unit808Processor::advanceStep()
     }
     const auto& seg = cycle[(size_t) segIndex];
     const auto& part = memory.rhythm[seg.slot].part[seg.var][seg.part];
-    const bool acc = part.cell (0, stepInSeg);
+    const bool acc = part.cell (0, stepInSeg) && ! isMuted (0);   // AC muted: no accents
+    const int flamSamples = juce::roundToInt ((5.0 + 35.0 * raw.flam->load()) * 0.001 * sampleRate);
     for (int r = 1; r < kNumRows; ++r)
-        if (part.cell (r, stepInSeg)) engine.trigger ((Voice) (r - 1), acc);
+    {
+        if (! part.cell (r, stepInSeg) || ! voiceAllowed (r)) continue;
+        if (part.flam (r, stepInSeg))
+        {
+            engine.triggerLevel ((Voice) (r - 1), acc, 0.55);           // the grace note, softer, on the step
+            if (flamHits.size() < 64) flamHits.push_back ({ flamSamples, r - 1, acc });   // the main hit follows
+        }
+        else engine.trigger ((Voice) (r - 1), acc);
+    }
     playSlot = seg.slot; playVar = seg.var; playPart = seg.part; playStep = stepInSeg;
     ++uiVersion;
+}
+
+bool Unit808Processor::voiceAllowed (int row) const
+{
+    if (isMuted (row)) return false;
+    bool anySolo = false;
+    for (int i = 1; i < kNumRows; ++i) anySolo |= isSoloed (i);
+    return ! anySolo || isSoloed (row);
+}
+
+// A mode change keeps the place in the bar: the new mode carries on from the same step, lined up with the song
+void Unit808Processor::realign()
+{
+    cycle.clear(); trackPos = -1; measureCount = 0;
+    buildCycle();
+    segIndex = 0;
+    const int len0 = partLength (cycle[0]);
+    stepInSeg = (int) (((nextAbsStep % len0) + len0) % len0) - 1;
 }
 
 static int noteToVoice (int note, int& alt)
@@ -318,7 +363,7 @@ void Unit808Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     const int mode = getMode();
     if (mode != lastMode)
     {
-        if (lastMode >= 0) { cycle.clear(); trackPos = -1; measureCount = 0; }
+        if (lastMode >= 0) realignPending = true;
         lastMode = mode;
     }
     if (! playing)
@@ -330,12 +375,13 @@ void Unit808Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
         cycle.clear();
         measureCount = 0;
         fillRequested = false;
+        realignPending = false;
         if (pendingSlot.load() >= 0 && pendingSlot.load() < kFirstFill) { currentRhythm = pendingSlot.load(); pendingSlot = -1; }
     }
 
     // ---- step timing: PRE-SCALE step length, SWING delays every second step (50 % .. 75 %)
     const double L = kStepLen16[juce::jlimit (0, 3, (int) raw.preScale->load())];
-    const double swingAmt = juce::jlimit (0.0, 0.5, 0.5 * raw.swing->load() + 0.08 * raw.swingFine->load());
+    const double swingAmt = juce::jlimit (0.0, 0.5, 0.5 * (double) raw.swing->load());
     auto stepTime = [&] (long long k) { return ((double) k + ((k & 1) ? swingAmt : 0.0)) * L; };
     auto firstAtOrAfter = [&] (double q) { long long k = (long long) std::floor (q / L); return stepTime (k) >= q - 1e-9 ? k : k + 1; };
 
@@ -345,13 +391,11 @@ void Unit808Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     if (playing && ! wasPlaying)
     {
         nextAbsStep = firstAtOrAfter (q0);
-        cycle.clear(); trackPos = -1; measureCount = 0;
-        buildCycle();
-        segIndex = 0;
-        const int len0 = partLength (cycle[0]);
-        stepInSeg = (int) (((nextAbsStep % len0) + len0) % len0) - 1;   // patterns line up with the song
+        realign();                                            // patterns line up with the song
         wasPlaying = true;
+        realignPending = false;
     }
+    if (playing && realignPending) { realign(); realignPending = false; }
 
     buffer.clear();
     auto* left  = buffer.getWritePointer (0);
@@ -372,13 +416,23 @@ void Unit808Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
                 ++nextAbsStep;
             }
         }
+        for (size_t f = 0; f < flamHits.size();)                    // flam main hits
+        {
+            if (--flamHits[f].samples <= 0)
+            {
+                renderTo (i);
+                engine.trigger ((Voice) flamHits[f].voice, flamHits[f].accent);
+                flamHits.erase (flamHits.begin() + (long) f);
+            }
+            else ++f;
+        }
         for (; midiIt != midi.cend() && (*midiIt).samplePosition <= i; ++midiIt)
         {
             const auto m = (*midiIt).getMessage();
             if (! m.isNoteOn()) continue;
             int alt;
             const int v = noteToVoice (m.getNoteNumber(), alt);
-            if (v < 0) continue;
+            if (v < 0 || ! voiceAllowed (v + 1)) continue;
             renderTo (i);
             engine.triggerVelocity ((Voice) v, m.getVelocity(), alt);
         }
@@ -409,6 +463,9 @@ void Unit808Processor::getStateInformation (juce::MemoryBlock& destData)
                 const juce::String key = "r" + juce::String (s) + "v" + juce::String (v) + "p" + juce::String (p);
                 mem.setProperty (key, rows.joinIntoString (" "), nullptr);
                 mem.setProperty (key + "len", part.length.load(), nullptr);
+                juce::StringArray fl;
+                for (int r = 0; r < kNumRows; ++r) fl.add (juce::String::toHexString ((int) part.flams[r].load()));
+                mem.setProperty (key + "flam", fl.joinIntoString (" "), nullptr);
             }
     for (int t = 0; t < kNumTracks; ++t)
     {
@@ -438,6 +495,9 @@ void Unit808Processor::setStateInformation (const void* data, int sizeInBytes)
                     rows.addTokens (mem.getProperty (key).toString(), " ", "");
                     for (int r = 0; r < kNumRows; ++r) part.rows[r] = (uint16_t) (r < rows.size() ? rows[r].getHexValue32() & 0xffff : 0);
                     part.length = juce::jlimit (p == 0 ? 1 : 0, 16, (int) mem.getProperty (key + "len", p == 0 ? 16 : 0));
+                    juce::StringArray fl;
+                    fl.addTokens (mem.getProperty (key + "flam").toString(), " ", "");
+                    for (int r = 0; r < kNumRows; ++r) part.flams[r] = (uint16_t) (r < fl.size() ? fl[r].getHexValue32() & 0xffff : 0);
                 }
         for (int t = 0; t < kNumTracks; ++t)
         {

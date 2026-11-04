@@ -62,6 +62,7 @@ public:
     void reset();
     void setParams(const Params& p) { P = p; }
     void trigger(Voice v, bool accent);           // sequencer step: accented = full level
+    void triggerLevel(Voice v, bool accent, double scale);   // same, times scale (flam grace notes)
     void triggerVelocity(Voice v, int velocity, int alt = -1);  // MIDI note: (1-AC) + AC*vel/127, as the device
     // alt: -1 = follow the panel switch, 0 = tom / rim shot / hand clap, 1 = conga / claves / maracas
     // Renders mono mix; optional per-voice outputs (post level) for multi-out.

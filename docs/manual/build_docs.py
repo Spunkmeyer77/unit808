@@ -255,7 +255,7 @@ def manual():
     toc = [("INTRODUCTION", 4, True), ("BASIC COURSE", 5, True), ("Installation", 5), ("Front Panel Layout", 6),
            ("Writing Rhythm Patterns", 7), ("Playing Rhythm Patterns", 9), ("Intro / Fill In", 10),
            ("Composing and Playing Rhythm Tracks", 11), ("ADVANCED COURSE", 12, True), ("Control Descriptions", 12),
-           ("Step Number, 2nd Part, Pattern Clear", 13), ("Pre-Scale, Swing and Flam", 14), ("Sound Controls", 14),
+           ("Step Number, 2nd Part, Clearing, Copy and Paste", 13), ("Pre-Scale, Swing and Flam", 14), ("Sound Controls", 14),
            ("Mute and Solo, Selecting with the Name Windows", 15), ("Playing from MIDI", 16), ("Running in a DAW, Saving, MIDI Mapping", 16),
            ("How Each Voice Is Modelled", 17), ("About Window, Window Size, Troubleshooting", 18), ("Specifications", 19)]
     d.page('<div class="toc"><div class="sec"><span class="sect">TABLE OF CONTENTS</span></div>'
@@ -385,7 +385,15 @@ as you like; a 2nd Part that was never written is not played.</p>''')
         + topic("Clearing", f'''<ul><li><b>A whole rhythm:</b> set MODE to PATTERN CLEAR, press the rhythm&rsquo;s STEP key, set BASIC-VARIATION
 (A, B, or AB for both) and press CLEAR {C["D"]}.</li>
 <li><b>One instrument of a part:</b> in 1st or 2nd PART select the instrument and Option/Alt-click CLEAR.</li>
-<li><b>A track:</b> in COMPOSE press CLEAR (TRACK CLEAR).</li></ul><p class="note">There is no undo; save your project first.</p>'''),
+<li><b>A track:</b> in COMPOSE press CLEAR (TRACK CLEAR).</li></ul><p class="note">Clearing has no undo; save your project first.</p>''')
+        + topic("Copy and Paste", f'''<div class="cols2"><div>
+<p><b>Whole rhythms and variations:</b> in MANUAL PLAY, PLAY, PATTERN CLEAR or COMPOSE, <b>right-click a STEP key</b> {C["R"]}
+(rhythm 1 &ndash; 12 or intro/fill 13 &ndash; 16) for: Copy rhythm, Copy variation A, Copy variation B, Paste rhythm,
+Paste to variation A / B, Undo paste. The key blinks after a paste.</p></div>
+<div><p><b>Parts and instruments:</b> in 1st or 2nd PART, <b>right-click CLEAR</b> {C["D"]} (or a STEP key) for: Copy this part,
+Copy the selected instrument, Paste into this part, Paste into the selected instrument, Undo paste.</p>
+<p class="note">Copies include accents, flams and step numbers. Each UNIT808 has its own clipboard; it is not saved with the project.
+Undo paste takes back the last paste.</p></div></div>'''),
         "ADVANCED COURSE", True)
 
     d.page(topic("Pre-Scale, Swing and Flam", f'''<div class="cols2"><p>PRE-SCALE {C["P"]} sets the length of a step:</p>
@@ -410,11 +418,13 @@ sets the gap, from TIGHT (5 ms) to LOOSE (40 ms).</p></div>''')
 <ul><li><b>Option/Alt-click</b> a label: mute that instrument. The label is dimmed.</li>
 <li><b>Shift-click</b> a label: solo it. The label glows red. Several instruments can be soloed at once; then only they play.</li>
 <li><b>Right-click</b> a label: a menu with Mute, Solo and Clear all mutes and solos.</li>
-<li>A plain click selects the instrument, as before.</li></ul></div>
+<li>A plain click selects the instrument, as before.</li></ul>
+<p>The channel name windows (ACCENT, BASS DRUM &hellip;, LOW CONGA &hellip; MARACAS) work the same way: Option/Alt-click mutes, Shift-click solos,
+right-click opens the menu; the dimmed or red state shows on the INSTRUMENT-SELECT labels.</p></div>
 <div><p class="note">Muting AC plays the rhythm without accents. AC cannot be soloed.</p>
 <p class="note">Mutes and solos also apply to MIDI notes, are saved with your project and can be automated.</p></div></div>""")
         + topic("Selecting with the Name Windows", f"""<p>Click a channel&rsquo;s name window (ACCENT, BASS DRUM, SNARE DRUM &hellip;, or LOW CONGA, CLAVES, MARACAS
-above) to select that instrument for writing, the same as turning INSTRUMENT-SELECT {C["C"]}. The selected channel&rsquo;s window
+above) to select that instrument for writing (Option/Alt-click and Shift-click mute and solo it), the same as turning INSTRUMENT-SELECT {C["C"]}. The selected channel&rsquo;s window
 has an orange frame. Toms and congas share one row, so LOW TOM and LOW CONGA select the same instrument.</p>"""),
         "ADVANCED COURSE", True)
 
@@ -487,6 +497,12 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("0.3.0", "4 November 2026", [
+        "Copy and paste rhythms: right-click a STEP key (in MANUAL PLAY, PLAY, PATTERN CLEAR or COMPOSE) to copy or paste a whole rhythm or one variation, A or B.",
+        "Copy and paste parts and instruments: in 1st or 2nd PART, right-click CLEAR (or a STEP key) to copy or paste the part, or just the selected instrument.",
+        "Copies include accents, flams and step numbers; Undo paste takes back the last paste. Each UNIT808 has its own clipboard.",
+        "The channel name windows now also mute (Option/Alt-click) and solo (Shift-click) their instrument; right-click for the menu. A plain click still selects it.",
+        "New Rhythm Composer lettering on the panel, closer to the original."]),
     ("0.2.0", "4 November 2026", [
         "FLAM: Option/Alt-click a STEP key in 1st or 2nd PART to play the selected instrument on that step as a flam (a soft grace note, then the main hit). Flams are per instrument; flammed steps light blue.",
         "The former FINE SWING knob is now FLAM: it sets the flam spacing from TIGHT (5 ms) to LOOSE (40 ms). SWING alone sets the swing.",

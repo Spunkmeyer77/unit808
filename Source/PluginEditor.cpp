@@ -407,6 +407,7 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
         for (auto& l : channelLabels)
         {
             l->onClick = select;
+            l->onMuteSolo = [this] (int i, juce::ModifierKeys m) { instrumentLabelClick (i, m); };
             l->isSelected = [this] (int i) { return proc.getInstrument() == i; };
             content.addAndMakeVisible (*l);
         }
@@ -435,6 +436,7 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
         k->ledState = [this, s] { return stepLed (s); };
         k->onPress = [this, s] (juce::ModifierKeys m)
         {
+            if (m.isPopupMenu()) { stepKeyMenu (s); return; }   // copy / paste
             const bool write = proc.getMode() == Unit808Processor::FirstPart || proc.getMode() == Unit808Processor::SecondPart;
             const bool stepNumber = m.isShiftDown() || m.isAltDown() || proc.isStepNumberArmed();
             proc.stepKey (s, m);
@@ -454,7 +456,7 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
     tap->onPress = [this] (juce::ModifierKeys) { proc.tapKey(); content.repaint(); };
     clear = std::make_unique<Key> (*find ("track-clear-led"));
     clear->heldDown = [this] { return proc.isStepNumberArmed(); };
-    clear->onPress = [this] (juce::ModifierKeys m) { proc.clearKey (m); content.repaint(); };
+    clear->onPress = [this] (juce::ModifierKeys m) { if (m.isPopupMenu()) clearMenu(); else proc.clearKey (m); content.repaint(); };
     for (auto* k : { startStop.get(), tap.get(), clear.get() }) content.addAndMakeVisible (*k);
 
     auto led = [] (const char* id) { const Ctrl* c = find (id); return Led { c, image (c->a[0]), image (c->a[1]) }; };
@@ -490,6 +492,8 @@ void Unit808Editor::Content::mouseUp (const juce::MouseEvent& e)
 int Unit808Editor::stepLed (int s) const
 {
     if (! proc.isPowerOn()) return 0;
+    if (s == flashKey && juce::Time::getMillisecondCounter() < flashUntil)   // just pasted here
+        return ((juce::Time::getMillisecondCounter() / 90) % 2) == 0 ? 1 : 0;
     const int play = proc.getPlayStep();
     const bool blink = (juce::Time::getMillisecondCounter() / 180) % 2 == 0;
     switch (proc.getMode())
@@ -541,7 +545,7 @@ void Unit808Editor::paintPanel (juce::Graphics& g)
 void Unit808Editor::timerCallback()
 {
     const int v = proc.uiVersion.load() + proc.memory.version.load() * 7919 + (proc.isTransportRunning() ? 1 : 0) * 104729;
-    const bool blinking = proc.getPendingSlot() >= 0 || proc.isFillRequested();
+    const bool blinking = proc.getPendingSlot() >= 0 || proc.isFillRequested() || juce::Time::getMillisecondCounter() < flashUntil + 100;
     if (v != lastUi || blinking)
     {
         lastUi = v;
@@ -558,6 +562,85 @@ void Unit808Editor::timerCallback()
         for (auto& sel : selectors) sel->repaint();
         for (auto& l : channelLabels) l->repaint();
     }
+}
+
+// Right-click a STEP key (where the keys choose rhythms): copy / paste the rhythm or one variation
+void Unit808Editor::stepKeyMenu (int key)
+{
+    const int mode = proc.getMode();
+    if (mode == Unit808Processor::FirstPart || mode == Unit808Processor::SecondPart) { clearMenu(); return; }
+    const juce::String name = key < unit808::kFirstFill ? "Rhythm " + juce::String (key + 1) : "Intro/Fill " + juce::String (key - unit808::kFirstFill + 1);
+    const int k = proc.clipKind();
+    juce::PopupMenu m;
+    m.addSectionHeader (name);
+    m.addItem (1, "Copy " + name.toLowerCase());
+    m.addItem (2, "Copy variation A");
+    m.addItem (3, "Copy variation B");
+    m.addSeparator();
+    const juce::String from = proc.clipDescription().isNotEmpty() ? "  (" + proc.clipDescription() + ")" : juce::String();
+    m.addItem (4, "Paste rhythm" + (k == Unit808Processor::ClipRhythm ? from : juce::String()), k == Unit808Processor::ClipRhythm);
+    m.addItem (5, "Paste to variation A" + (k == Unit808Processor::ClipVariation ? from : juce::String()), k == Unit808Processor::ClipVariation);
+    m.addItem (6, "Paste to variation B" + (k == Unit808Processor::ClipVariation ? from : juce::String()), k == Unit808Processor::ClipVariation);
+    m.addSeparator();
+    m.addItem (7, "Undo paste", proc.canUndoPaste());
+    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (stepKeys[(size_t) key].get()),
+                     [safe = juce::Component::SafePointer<Unit808Editor> (this), key] (int r)
+                     {
+                         if (safe == nullptr || r <= 0) return;
+                         auto& p = safe->proc;
+                         bool pasted = false;
+                         switch (r)
+                         {
+                             case 1: p.copyRhythm (key); break;
+                             case 2: p.copyVariation (key, 0); break;
+                             case 3: p.copyVariation (key, 1); break;
+                             case 4: pasted = p.pasteRhythm (key); break;
+                             case 5: pasted = p.pasteVariation (key, 0); break;
+                             case 6: pasted = p.pasteVariation (key, 1); break;
+                             case 7: p.undoPaste(); break;
+                             default: break;
+                         }
+                         if (pasted) safe->flash (key);
+                         safe->content.repaint();
+                     });
+}
+
+// Right-click CLEAR (or a STEP key) in 1st / 2nd PART: copy / paste the part or the selected instrument
+void Unit808Editor::clearMenu()
+{
+    const int mode = proc.getMode();
+    if (mode != Unit808Processor::FirstPart && mode != Unit808Processor::SecondPart) return;
+    const int slot = proc.getSelectedSlot(), var = proc.editVar(), part = proc.editPart(), inst = proc.getInstrument();
+    const juce::String partName = juce::String (part == 0 ? "1st" : "2nd") + " part";
+    const juce::String instName = Unit808Processor::kInstrumentNames[inst];
+    const int k = proc.clipKind();
+    const juce::String from = proc.clipDescription().isNotEmpty() ? "  (" + proc.clipDescription() + ")" : juce::String();
+    juce::PopupMenu m;
+    m.addSectionHeader ((slot < unit808::kFirstFill ? "Rhythm " + juce::String (slot + 1) : "Intro/Fill " + juce::String (slot - 11))
+                        + " " + (var == 0 ? "A" : "B") + ", " + partName);
+    m.addItem (1, "Copy this " + partName);
+    m.addItem (2, "Copy " + instName);
+    m.addSeparator();
+    m.addItem (3, "Paste into this " + partName + (k == Unit808Processor::ClipPart ? from : juce::String()), k == Unit808Processor::ClipPart);
+    m.addItem (4, "Paste into " + instName + (k == Unit808Processor::ClipRow ? from : juce::String()), k == Unit808Processor::ClipRow);
+    m.addSeparator();
+    m.addItem (5, "Undo paste", proc.canUndoPaste());
+    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (clear.get()),
+                     [safe = juce::Component::SafePointer<Unit808Editor> (this), slot, var, part, inst] (int r)
+                     {
+                         if (safe == nullptr || r <= 0) return;
+                         auto& p = safe->proc;
+                         switch (r)
+                         {
+                             case 1: p.copyPart (slot, var, part); break;
+                             case 2: p.copyRow (slot, var, part, inst); break;
+                             case 3: p.pastePart (slot, var, part); break;
+                             case 4: p.pasteRow (slot, var, part, inst); break;
+                             case 5: p.undoPaste(); break;
+                             default: break;
+                         }
+                         safe->content.repaint();
+                     });
 }
 
 void Unit808Editor::toggleParam (const juce::String& id)

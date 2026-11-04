@@ -282,6 +282,41 @@ int main (int argc, char** argv)
         check (soloEmpty < 1e-4f && soloBd > 0.05f, "solo plays only the soloed instruments");
     }
 
+    // ---- copy / paste (rhythms only, one clipboard per UNIT808) with undo
+    {
+        auto same = [] (const unit808::Part& a, const unit808::Part& b)
+        {
+            for (int r = 0; r < unit808::kNumRows; ++r) if (a.rows[r].load() != b.rows[r].load() || a.flams[r].load() != b.flams[r].load()) return false;
+            return a.length.load() == b.length.load();
+        };
+        auto& R = proc.memory.rhythm;
+        proc.copyRhythm (0);
+        check (proc.pasteRhythm (5) && same (R[5].part[0][0], R[0].part[0][0]) && same (R[5].part[0][1], R[0].part[0][1])
+                   && same (R[5].part[1][0], R[0].part[1][0]) && R[5].part[0][0].flam (2, 4),
+               "copy rhythm 1, paste to rhythm 6: both variations, both parts, flams and step numbers");
+        check (! proc.pasteVariation (5, 1), "a rhythm on the clipboard cannot be pasted as a variation");
+        proc.undoPaste();
+        check (R[5].part[0][0].empty() && R[5].part[0][1].length.load() == 0 && ! proc.canUndoPaste(), "undo paste brings rhythm 6 back (empty)");
+        proc.copyVariation (0, 0);
+        const uint16_t bBefore = R[0].part[1][0].rows[1].load();
+        proc.pasteVariation (0, 1);
+        check (same (R[0].part[1][0], R[0].part[0][0]) && same (R[0].part[1][1], R[0].part[0][1]), "copy variation A, paste to variation B");
+        proc.undoPaste();
+        check (R[0].part[1][0].rows[1].load() == bBefore, "undo paste restores variation B");
+        proc.copyPart (0, 0, 0);
+        proc.pastePart (3, 0, 1);
+        check (same (R[3].part[0][1], R[0].part[0][0]), "copy a 1st part, paste into another rhythm's 2nd part");
+        proc.undoPaste();
+        proc.copyRow (0, 0, 0, 11);               // CH of rhythm 1 A 1st part
+        proc.pasteRow (4, 1, 0, 11);
+        check (R[4].part[1][0].rows[11].load() == R[0].part[0][0].rows[11].load() && R[4].part[1][0].rows[1].load() == 0,
+               "copy one instrument (CH) and paste it into another rhythm, nothing else changes");
+        proc.undoPaste();
+        check (R[4].part[1][0].empty(), "undo paste of an instrument");
+        P other;
+        check (other.clipKind() == P::ClipNone, "each UNIT808 has its own clipboard");
+    }
+
     // ---- pattern clear: clears the chosen rhythm
     setParam ("mode", P::PatternClear); proc.stepKey (1, none); proc.clearKey (none);
     check (proc.memory.rhythm[1].part[0][0].empty(), "Pattern Clear + CLEAR clears the rhythm");

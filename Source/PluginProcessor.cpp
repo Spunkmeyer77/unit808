@@ -213,6 +213,119 @@ void Unit808Processor::clearKey (juce::ModifierKeys mods)
 
 void Unit808Processor::startStopKey() { if (isStandalone()) runEnabled = ! runEnabled.load(); ++uiVersion; }
 
+// ---- copy / paste --------------------------------------------------------------------------------
+Unit808Processor::PartData Unit808Processor::save (const Part& p)
+{
+    PartData d;
+    for (int r = 0; r < kNumRows; ++r) { d.rows[r] = p.rows[r].load(); d.flams[r] = p.flams[r].load(); }
+    d.length = p.length.load();
+    return d;
+}
+
+void Unit808Processor::load (Part& p, const PartData& d)
+{
+    for (int r = 0; r < kNumRows; ++r) { p.rows[r] = d.rows[r]; p.flams[r] = d.flams[r]; }
+    p.length = d.length;
+}
+
+void Unit808Processor::keepUndo (int slot)
+{
+    undo.valid = true; undo.slot = slot;
+    for (int v = 0; v < 2; ++v) for (int p = 0; p < 2; ++p) undo.parts[v][p] = save (memory.rhythm[slot].part[v][p]);
+}
+
+void Unit808Processor::copyRhythm (int slot)
+{
+    clip.kind = ClipRhythm; clip.fromSlot = slot;
+    for (int v = 0; v < 2; ++v) for (int p = 0; p < 2; ++p) clip.parts[v][p] = save (memory.rhythm[slot].part[v][p]);
+}
+
+void Unit808Processor::copyVariation (int slot, int var)
+{
+    clip.kind = ClipVariation; clip.fromSlot = slot; clip.fromVar = var;
+    for (int p = 0; p < 2; ++p) clip.parts[0][p] = save (memory.rhythm[slot].part[var][p]);
+}
+
+void Unit808Processor::copyPart (int slot, int var, int part)
+{
+    clip.kind = ClipPart; clip.fromSlot = slot; clip.fromVar = var; clip.fromPart = part;
+    clip.parts[0][0] = save (memory.rhythm[slot].part[var][part]);
+}
+
+void Unit808Processor::copyRow (int slot, int var, int part, int row)
+{
+    clip.kind = ClipRow; clip.fromSlot = slot; clip.fromVar = var; clip.fromPart = part; clip.row = row;
+    clip.parts[0][0] = save (memory.rhythm[slot].part[var][part]);
+}
+
+bool Unit808Processor::pasteRhythm (int slot)
+{
+    if (clip.kind != ClipRhythm) return false;
+    keepUndo (slot);
+    for (int v = 0; v < 2; ++v) for (int p = 0; p < 2; ++p) load (memory.rhythm[slot].part[v][p], clip.parts[v][p]);
+    ++memory.version; ++uiVersion;
+    return true;
+}
+
+bool Unit808Processor::pasteVariation (int slot, int var)
+{
+    if (clip.kind != ClipVariation) return false;
+    keepUndo (slot);
+    for (int p = 0; p < 2; ++p) load (memory.rhythm[slot].part[var][p], clip.parts[0][p]);
+    ++memory.version; ++uiVersion;
+    return true;
+}
+
+bool Unit808Processor::pastePart (int slot, int var, int part)
+{
+    if (clip.kind != ClipPart) return false;
+    keepUndo (slot);
+    auto d = clip.parts[0][0];
+    if (part == 0 && d.length == 0) d.length = 16;          // a 1st part always has steps
+    load (memory.rhythm[slot].part[var][part], d);
+    ++memory.version; ++uiVersion;
+    return true;
+}
+
+bool Unit808Processor::pasteRow (int slot, int var, int part, int row)
+{
+    if (clip.kind != ClipRow) return false;
+    keepUndo (slot);
+    auto& dst = memory.rhythm[slot].part[var][part];
+    dst.rows[row] = clip.parts[0][0].rows[clip.row];
+    dst.flams[row] = clip.parts[0][0].flams[clip.row];
+    if (part == 1 && dst.length.load() == 0) dst.length = 16;
+    ++memory.version; ++uiVersion;
+    return true;
+}
+
+void Unit808Processor::undoPaste()
+{
+    if (! undo.valid) return;
+    for (int v = 0; v < 2; ++v) for (int p = 0; p < 2; ++p) load (memory.rhythm[undo.slot].part[v][p], undo.parts[v][p]);
+    undo.valid = false;
+    ++memory.version; ++uiVersion;
+}
+
+static juce::String slotName (int slot)
+{
+    return slot < kFirstFill ? "rhythm " + juce::String (slot + 1) : "intro/fill " + juce::String (slot - kFirstFill + 1);
+}
+
+juce::String Unit808Processor::clipDescription() const
+{
+    const char* v[2] = { "A", "B" };
+    const char* p[2] = { "1st", "2nd" };
+    switch (clip.kind)
+    {
+        case ClipRhythm:    return slotName (clip.fromSlot);
+        case ClipVariation: return slotName (clip.fromSlot) + " " + v[clip.fromVar];
+        case ClipPart:      return slotName (clip.fromSlot) + " " + v[clip.fromVar] + " " + p[clip.fromPart] + " part";
+        case ClipRow:       return juce::String (kInstrumentNames[clip.row]) + " of " + slotName (clip.fromSlot) + " " + v[clip.fromVar] + " " + p[clip.fromPart] + " part";
+        default:            return {};
+    }
+}
+
 // ---- sequencer (audio thread) ----------------------------------------------------------------------
 void Unit808Processor::segmentFor (int slot, int varMode, std::vector<Segment>& out) const
 {

@@ -80,6 +80,21 @@ public:
     void clearKey (juce::ModifierKeys mods);  // CLEAR: pattern clear, track clear, step number
     void startStopKey();                      // standalone app only (in a DAW it shows the transport)
 
+    // ---- copy / paste (rhythms only; one clipboard per UNIT808)
+    enum ClipKind { ClipNone = 0, ClipRhythm, ClipVariation, ClipPart, ClipRow };
+    int  clipKind() const { return clip.kind; }
+    void copyRhythm (int slot);
+    void copyVariation (int slot, int var);
+    void copyPart (int slot, int var, int part);
+    void copyRow (int slot, int var, int part, int row);
+    bool pasteRhythm (int slot);
+    bool pasteVariation (int slot, int var);
+    bool pastePart (int slot, int var, int part);
+    bool pasteRow (int slot, int var, int part, int row);
+    bool canUndoPaste() const { return undo.valid; }
+    void undoPaste();
+    juce::String clipDescription() const;
+
     std::atomic<int> uiVersion { 0 };
 
 private:
@@ -111,6 +126,13 @@ private:
         std::atomic<float> *knob[23] {};
         std::atomic<float> *sw[5] {};
     } raw {};
+
+    struct PartData { uint16_t rows[unit808::kNumRows] {}, flams[unit808::kNumRows] {}; int length = 16; };
+    struct Clip { int kind = ClipNone; PartData parts[2][2]; int fromSlot = 0, fromVar = 0, fromPart = 0, row = 0; } clip;
+    struct Undo { bool valid = false; int slot = 0; PartData parts[2][2]; } undo;
+    static PartData save (const unit808::Part&);
+    static void load (unit808::Part&, const PartData&);
+    void keepUndo (int slot);
 
     void pullParams();
     void buildCycle();

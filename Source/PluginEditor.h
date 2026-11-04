@@ -56,8 +56,14 @@ public:
     ChannelLabel (juce::Rectangle<float> r, int inst) : instrument (inst) { setBounds (r.expanded (3.0f).getSmallestIntegerContainer());
                                                                              setMouseCursor (juce::MouseCursor::PointingHandCursor); }
     void paint (juce::Graphics&) override;
-    void mouseDown (const juce::MouseEvent&) override { if (onClick) onClick (instrument); }
+    void mouseDown (const juce::MouseEvent& e) override
+    {
+        const auto m = e.mods;   // Alt/Option: mute, Shift: solo, right-click: menu; a plain click selects
+        if ((m.isAltDown() || m.isShiftDown() || m.isPopupMenu()) && onMuteSolo) onMuteSolo (instrument, m);
+        else if (onClick) onClick (instrument);
+    }
     std::function<void (int)> onClick;
+    std::function<void (int, juce::ModifierKeys)> onMuteSolo;
     std::function<bool (int)> isSelected;
     const int instrument;
 };
@@ -162,6 +168,11 @@ private:
     void toggleParam (const juce::String& id);
     void stepKeyDragTo (juce::Point<float>);
     void startStopMenu();
+    void stepKeyMenu (int key);
+    void clearMenu();
+    void flash (int key) { flashKey = key; flashUntil = juce::Time::getMillisecondCounter() + 600; }
+    int flashKey = -1;
+    juce::uint32 flashUntil = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Unit808Editor)
 };

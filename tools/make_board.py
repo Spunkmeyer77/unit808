@@ -76,6 +76,28 @@ def main():
         d.ellipse([(cx - r + 3) * S, (cy - r + 3) * S, (cx + r - 3) * S, (cy + r - 3) * S], fill=(24, 92, 48, 255))
         for k, line in enumerate(p["label"].split("\n")):
             text(d, (cx, cy + r + 9 + k * 12), line, 10.5)
+    # 5. the 16 STEP keys and the PART LEDs are live in the plugin: show them unlit here
+    a = np.array(img).astype(float)
+    for k in range(16):
+        x0, x1, y0, y1 = int((399 + k * 72.9) * S), int((461 + k * 72.9) * S), int(902 * S), int(991 * S)
+        cap = a[y0:y1, x0:x1]
+        lum = cap.mean(axis=2, keepdims=True) / 255.0
+        cream = np.array([214.0, 200.0, 172.0])
+        warm = (cap[..., 0] - cap[..., 1] > 18)[..., None]           # the key cap and the glow (not the green board)
+        a[y0:y1, x0:x1] = np.where(warm, np.clip(lum * 1.15, 0, 1.05) * cream, cap)
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    img = inpaint(img, [(318, 893, 372, 918), (326, 942, 356, 968)], lambda r, g, b: (r > 150) | (g > 170))
+    d = ImageDraw.Draw(img, "RGBA")
+    for k in range(16):
+        cx, cy = (429.5 + k * 72.9) * S, 925 * S
+        d.ellipse([cx - 9 * S, cy - 9 * S, cx + 9 * S, cy + 9 * S], fill=(70, 18, 16, 255), outline=(40, 30, 25, 255), width=S)
+        d.ellipse([cx - 4 * S, cy - 6 * S, cx, cy - 2 * S], fill=(140, 80, 70, 160))
+    d.ellipse([331 * S, 899 * S, 349 * S, 917 * S], fill=(70, 18, 16, 255), outline=(30, 40, 30, 255), width=S)   # 1st PART LED
+    d.rectangle([331 * S, 946 * S, 349 * S, 964 * S], fill=(78, 62, 14, 255), outline=(30, 40, 30, 255), width=S)  # 2nd PART LED
+    img = inpaint(img, [(300, 966, 410, 996)], light)
+    d = ImageDraw.Draw(img, "RGBA")
+    text(d, (352, 981), "2nd PART", 12.5, False)
+    text(d, (148, 140), "POWER", 11, True, fill=(40, 42, 42))
     img.save(ROOT / "assets" / "ui" / "board.jpg", quality=93, subsampling=0)
     print("board.jpg", img.size)
 

@@ -466,7 +466,7 @@ A closed hi-hat cuts off the open one.</li>
 
     d.page(f'''<div class="topic" style="margin-bottom:6px"><div class="tt">Inside the Box</div><div class="tb">
 <p>Flip the POWER switch {C["A"]} to open the circuit board inside. UNIT808 keeps playing, so you can tune the sounds while the rhythm runs.
-Drag a trimmer up or down; a read-out shows its value; double-click returns it to its default. Click the &ldquo;Rhythm Composer&rdquo; lettering on the lower board to close it again.
+Drag a trimmer up or down; a read-out shows its value; double-click returns it to its default. The 16 STEP keys on the lower board work just like the ones on the panel (writing, Shift / Alt, dragging, right-click menu) and their LEDs show the same state, with the 1st / 2nd PART lights beside them. To close the board, click the black POWER switch at top left or the power supply (the transformer on the left), or press Esc.
 Trimmers are saved with your project and can be automated. At their defaults UNIT808 sounds exactly like the UNIT 808 device.</p></div></div>
 <img class="board" src="{BOARD}">''', "ADVANCED COURSE", True)
     d.page(topic("The Trimmers", '''<div class="cols3">
@@ -530,6 +530,13 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("0.4.3", "", [
+        "Inside the box: the 16 STEP keys work like the panel ones, with live LEDs and the 1st / 2nd PART lights",
+        "Inside the box: the black POWER switch, the power supply or Esc closes the board",
+        "The Export MIDI window is now in the panel's own style, with 808-style keys and LEDs",
+        "Right-click menus back to their 0.4.1 size",
+        "Update history without dates",
+    ]),
     ("0.4.2", "4 November 2026", [
         "MIDI export: rhythms, variations, parts, single instruments and whole rhythm tracks; drag the clip into your DAW or save a .mid file",
         "New inside: a photographed circuit board with the 29 trimmers on the voice board; click the Rhythm Composer lettering to close it",
@@ -580,7 +587,7 @@ def history(extra=None):
     for ch in chunks:
         b = ""
         for ver, date, items in ch:
-            b += topic(f"Version {ver}<br><span style='font-size:10pt'>{date}</span>",
+            b += topic(f"Version {ver}",
                        '<ul class="cols2">' + "".join(f"<li>{i}</li>" for i in items) + "</ul>")
         d.page(b, "UPDATE HISTORY", not first)
         first = False

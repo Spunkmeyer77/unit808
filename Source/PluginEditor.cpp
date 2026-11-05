@@ -8,12 +8,7 @@ namespace
 const float kPi = juce::MathConstants<float>::pi;
 const juce::Colour kOrange { 0xfff47c39 }, kCream { 0xffd8d5c7 }, kPanel { 0xff303332 };
 
-// popup menus at their own size: aimed at a screen area, so they do not shrink with the panel scale
-juce::PopupMenu::Options menuAt (juce::Component* c)
-{
-    return juce::PopupMenu::Options().withTargetScreenArea (c != nullptr ? c->getScreenBounds()
-                                                                         : juce::Rectangle<int> (1, 1).withPosition (juce::Desktop::getMousePosition()));
-}
+juce::PopupMenu::Options menuAt (juce::Component* c) { return juce::PopupMenu::Options().withTargetComponent (c); }
 
 juce::Font font (float size, bool bold = false) { return juce::Font (juce::FontOptions (size, bold ? juce::Font::bold : juce::Font::plain)); }
 
@@ -348,15 +343,58 @@ BoardView::BoardView (Unit808Processor& p)
 
 BoardView::~BoardView() { for (auto& t : trims) t->setLookAndFeel (nullptr); }
 
+static void ledGlow (juce::Graphics& g, juce::Point<float> c, juce::Colour col, float r)
+{
+    g.setGradientFill (juce::ColourGradient (col.withAlpha (0.55f), c, col.withAlpha (0.0f), c.translated (r * 2.6f, 0), true));
+    g.fillEllipse (juce::Rectangle<float> (r * 5.2f, r * 5.2f).withCentre (c));
+    g.setGradientFill (juce::ColourGradient (col.brighter (0.9f), c.translated (-r * 0.3f, -r * 0.35f), col, c.translated (r, r), true));
+    g.fillEllipse (juce::Rectangle<float> (r * 2.0f, r * 2.0f).withCentre (c));
+    g.setColour (juce::Colours::white.withAlpha (0.75f));
+    g.fillEllipse (juce::Rectangle<float> (r * 0.7f, r * 0.55f).withCentre (c.translated (-r * 0.3f, -r * 0.4f)));
+}
+
+void PhotoKey::paint (juce::Graphics& g)
+{
+    if (down)   // the cap goes down a little
+    {
+        g.setColour (juce::Colours::black.withAlpha (0.22f));
+        g.fillRect (juce::Rectangle<float> (6.0f, 9.0f, 50.0f, 79.0f));
+    }
+    const int st = ledState ? ledState() : 0;
+    if (st > 0) ledGlow (g, { 30.5f, down ? 27.0f : 25.0f }, st == 2 ? juce::Colour (0xff3d8bff) : juce::Colour (0xffff2a1c), 8.5f);
+}
+
+bool BoardView::closesBoard (juce::Point<float> p)
+{
+    return juce::Rectangle<float> (110.0f, 68.0f, 78.0f, 84.0f).contains (p)          // the black POWER switch
+        || juce::Rectangle<float> (50.0f, 232.0f, 362.0f, 500.0f).contains (p)        // the power supply: transformer and its board
+        || juce::Rectangle<float> (kPlateX, kPlateY, kPlateW, kPlateH).contains (p);  // the Rhythm Composer lettering
+}
+
 void BoardView::paint (juce::Graphics& g)
 {
     g.setImageResamplingQuality (juce::Graphics::highResamplingQuality);
     g.drawImage (board, getLocalBounds().toFloat());
+    const int m = partLeds ? partLeds() : 0;
+    if (m & 1) ledGlow (g, { 340.0f, 908.0f }, juce::Colour (0xffff2a1c), 8.5f);
+    if (m & 2)
+    {
+        const auto r = juce::Rectangle<float> (18.0f, 18.0f).withCentre ({ 340.0f, 955.0f });
+        g.setGradientFill (juce::ColourGradient (juce::Colour (0x88ffd23a), r.getCentre(), juce::Colour (0x00ffd23a), r.getCentre().translated (24.0f, 0), true));
+        g.fillEllipse (r.expanded (16.0f));
+        g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xfffff1a0), r.getY(), juce::Colour (0xffffb800), r.getBottom()));
+        g.fillRect (r);
+    }
+}
+
+void BoardView::mouseMove (const juce::MouseEvent& e)
+{
+    setMouseCursor (closesBoard (e.position) ? juce::MouseCursor::PointingHandCursor : juce::MouseCursor::NormalCursor);
 }
 
 void BoardView::mouseUp (const juce::MouseEvent& e)
 {
-    if (juce::Rectangle<float> (kPlateX, kPlateY, kPlateW, kPlateH).contains (e.position) && onClose) onClose();
+    if (closesBoard (e.position) && onClose) onClose();
 }
 
 PowerSwitch::PowerSwitch (const Ctrl& c) : ctrl (c)
@@ -469,20 +507,51 @@ void AboutOverlay::paint (juce::Graphics& g)
 }
 
 // ---------------------------------------------------------------------------------------------- MIDI export
-ExportPanel::ExportPanel (Unit808Processor& p) : proc (p)
+// buttons of the export window drawn like the 808's own keys: a cream cap, a red LED on the toggles
+struct ExportKeyLnf : public juce::LookAndFeel_V4
+{
+    void drawButtonBackground (juce::Graphics& g, juce::Button& b, const juce::Colour&, bool over, bool down) override
+    {
+        const bool toggle = b.getClickingTogglesState();
+        auto cap = toggle ? juce::Rectangle<float> (4.0f, 4.0f, 44.0f, (float) b.getHeight() - 8.0f) : b.getLocalBounds().toFloat().reduced (2.0f);
+        g.setColour (juce::Colour (0xff1c1e1e));
+        g.fillRect (cap.expanded (2.0f).translated (0, 2.0f));
+        if (down) cap = cap.translated (0, 2.0f);
+        g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (over ? 0xffebe8dc : 0xffe2dfd3), cap.getY(), juce::Colour (0xffbdb9ab), cap.getBottom()));
+        g.fillRect (cap);
+        g.setColour (juce::Colours::white.withAlpha (0.5f));
+        g.fillRect (cap.getX() + 3.0f, cap.getY() + 3.0f, cap.getWidth() - 6.0f, 2.0f);
+        if (toggle)
+        {
+            const auto c = cap.getCentre();
+            const bool on = b.getToggleState();
+            g.setColour (on ? juce::Colour (0xffff2a1c) : juce::Colour (0xff5a1a14));
+            g.fillEllipse (juce::Rectangle<float> (12.0f, 12.0f).withCentre (c));
+            if (on) { g.setColour (juce::Colour (0x55ff2a1c)); g.fillEllipse (juce::Rectangle<float> (24.0f, 24.0f).withCentre (c)); }
+        }
+    }
+    void drawButtonText (juce::Graphics& g, juce::TextButton& b, bool, bool down) override
+    {
+        const bool toggle = b.getClickingTogglesState();
+        g.setColour (juce::Colour (0xff1c1e1e));
+        g.setFont (font (toggle ? 16.0f : 20.0f, ! toggle));
+        auto r = b.getLocalBounds().toFloat();
+        if (toggle) g.drawFittedText (b.getButtonText(), r.withTrimmedLeft (60.0f).toNearestInt(), juce::Justification::centredLeft, 2);
+        else g.drawText (b.getButtonText(), r.translated (0, down ? 2.0f : 0.0f), juce::Justification::centred);
+    }
+};
+
+ExportPanel::ExportPanel (Unit808Processor& p) : proc (p), lnf (std::make_unique<ExportKeyLnf>())
 {
     setWantsKeyboardFocus (true);
-    auto style = [this] (juce::TextButton& b, bool toggle)
+    for (auto* b : { &saveBtn, &swingBtn, &muteBtn })
     {
-        b.setColour (juce::TextButton::buttonColourId, juce::Colour (0xff3a3e3e));
-        b.setColour (juce::TextButton::buttonOnColourId, kOrange);
-        b.setColour (juce::TextButton::textColourOffId, kCream);
-        b.setColour (juce::TextButton::textColourOnId, juce::Colour (0xff1c1e1e));
-        b.setClickingTogglesState (toggle);
-        b.setMouseCursor (juce::MouseCursor::PointingHandCursor);
-        addAndMakeVisible (b);
-    };
-    style (saveBtn, false); style (swingBtn, true); style (muteBtn, true);
+        b->setLookAndFeel (lnf.get());
+        b->setMouseCursor (juce::MouseCursor::PointingHandCursor);
+        addAndMakeVisible (*b);
+    }
+    swingBtn.setClickingTogglesState (true);
+    muteBtn.setClickingTogglesState (true);
     swingBtn.onClick = [this] { proc.exportSwing = swingBtn.getToggleState(); refresh(); };
     muteBtn.onClick  = [this] { proc.exportMuteSolo = muteBtn.getToggleState(); refresh(); };
     saveBtn.onClick = [this]
@@ -503,8 +572,10 @@ ExportPanel::ExportPanel (Unit808Processor& p) : proc (p)
     };
 }
 
+ExportPanel::~ExportPanel() { for (auto* b : { &saveBtn, &swingBtn, &muteBtn }) b->setLookAndFeel (nullptr); }
+
 juce::Rectangle<float> ExportPanel::card() const { return juce::Rectangle<float> (860.0f, 560.0f).withCentre ({ 935.0f, 545.0f }); }
-juce::Rectangle<float> ExportPanel::tile() const { const auto c = card(); return { c.getX() + 48.0f, c.getY() + 150.0f, c.getWidth() - 96.0f, 150.0f }; }
+juce::Rectangle<float> ExportPanel::tile() const { const auto c = card(); return { c.getX() + 40.0f, c.getY() + 130.0f, c.getWidth() - 80.0f, 170.0f }; }
 juce::File ExportPanel::tempFile() const
 {
     return juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("UNIT808 MIDI").getChildFile (juce::File::createLegalFileName (name) + ".mid");
@@ -525,56 +596,83 @@ void ExportPanel::refresh()
 {
     name = proc.exportName (spec);
     proc.buildMidi (spec, &notes, &bars);
+    // the first bar of the clip, shown on 16 little step keys
+    int slot = spec.slot, var = spec.var, part = (spec.kind == Unit808Processor::ExPart || spec.kind == Unit808Processor::ExRow) ? spec.part : 0;
+    if (spec.kind == Unit808Processor::ExRhythm) var = 0;
+    if (spec.kind == Unit808Processor::ExTrack)
+    {
+        if (proc.memory.trackLen[spec.track].load() > 0) { const auto e = proc.memory.entry (spec.track, 0); slot = e.slot; var = e.var == Unit808Processor::VarB ? 1 : 0; }
+    }
+    const auto& pa = proc.memory.rhythm[slot].part[var][part];
+    lit = 0;
+    for (int st = 0; st < 16; ++st)
+        for (int r = 1; r < unit808::kNumRows; ++r)
+            if ((spec.kind != Unit808Processor::ExRow || r == spec.row) && pa.cell (r, st)) lit |= (uint16_t) (1u << st);
     repaint();
 }
 
 void ExportPanel::resized()
 {
     const auto c = card();
-    swingBtn.setBounds (juce::Rectangle<float> (c.getX() + 48.0f, c.getY() + 330.0f, 320.0f, 46.0f).toNearestInt());
-    muteBtn.setBounds (juce::Rectangle<float> (c.getRight() - 368.0f, c.getY() + 330.0f, 320.0f, 46.0f).toNearestInt());
-    saveBtn.setBounds (juce::Rectangle<float> (c.getX() + 48.0f, c.getY() + 400.0f, c.getWidth() - 96.0f, 56.0f).toNearestInt());
+    swingBtn.setBounds (juce::Rectangle<float> (c.getX() + 40.0f, c.getY() + 326.0f, 370.0f, 50.0f).toNearestInt());
+    muteBtn.setBounds (juce::Rectangle<float> (c.getX() + 440.0f, c.getY() + 326.0f, 380.0f, 50.0f).toNearestInt());
+    saveBtn.setBounds (juce::Rectangle<float> (c.getX() + 40.0f, c.getY() + 400.0f, c.getWidth() - 80.0f, 62.0f).toNearestInt());
 }
 
 void ExportPanel::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::black.withAlpha (0.62f));
+    g.fillAll (juce::Colours::black.withAlpha (0.6f));
     const auto c = card();
-    g.setColour (juce::Colours::black.withAlpha (0.55f));
+    g.setColour (juce::Colours::black.withAlpha (0.5f));
     g.fillRect (c.translated (0, 8.0f));
-    g.setGradientFill (juce::ColourGradient::vertical (juce::Colour (0xff3d4040), c.getY(), juce::Colour (0xff262a2a), c.getBottom()));
+    // like the lower half of the panel: light grey, with a dark strip on top
+    g.setColour (juce::Colour (0xffc6c3b7));
     g.fillRect (c);
-    g.setColour (juce::Colour (0xff565a5a));
-    g.drawRect (c, 2.0f);
+    const auto top = c.withHeight (96.0f);
+    g.setColour (kPanel);
+    g.fillRect (top);
     g.setColour (kOrange);
-    g.fillRect (c.getX() + 48.0f, c.getY() + 104.0f, c.getWidth() - 96.0f, 3.0f);
-
-    const float x0 = c.getX() + 48.0f;
-    g.setColour (kOrange);
-    g.setFont (font (40.0f, true));
-    g.drawText ("EXPORT MIDI", juce::Rectangle<float> (x0, c.getY() + 30.0f, 400.0f, 50.0f), juce::Justification::centredLeft);
+    g.fillRect (c.getX(), top.getBottom(), c.getWidth(), 4.0f);
+    g.setFont (font (38.0f));
+    g.drawText ("EXPORT MIDI", top.withTrimmedLeft (40.0f), juce::Justification::centredLeft);
     g.setColour (kCream);
-    g.setFont (font (20.0f));
-    g.drawText (name.fromFirstOccurrenceOf ("UNIT808 ", false, false), juce::Rectangle<float> (x0 + 300.0f, c.getY() + 30.0f, c.getWidth() - 396.0f, 50.0f),
-                juce::Justification::centredRight, true);
+    g.setFont (font (19.0f));
+    g.drawText (name.fromFirstOccurrenceOf ("UNIT808 ", false, false).toUpperCase(), top.withTrimmedRight (40.0f).withTrimmedLeft (330.0f), juce::Justification::centredRight, true);
 
-    // the clip: grab it and drop it on a DAW track
+    // the clip: a dark strip with 16 little step keys; grab it and drop it on a DAW track
     const auto t = tile();
-    g.setColour (pressedInTile ? juce::Colour (0xffece8d8) : juce::Colour (0xffd8d5c7));
+    g.setColour (pressedInTile ? juce::Colour (0xff3a3d3c) : juce::Colour (0xff2b2e2d));
     g.fillRect (t);
     g.setColour (juce::Colour (0xff1c1e1e));
-    for (int i = 0; i < 16; ++i)   // a little step pattern
-        g.fillRect (juce::Rectangle<float> (t.getX() + 30.0f + (float) i * 18.0f, t.getY() + 40.0f + (float) ((i * 7) % 5) * 12.0f, 12.0f, 8.0f));
-    g.setFont (font (26.0f, true));
-    g.drawText (notes > 0 ? "DRAG ME INTO YOUR DAW" : "NOTHING TO EXPORT", t.withTrimmedLeft (340.0f).withTrimmedBottom (40.0f), juce::Justification::centredLeft);
-    g.setFont (font (17.0f));
-    g.drawText (juce::String (notes) + " notes  |  " + juce::String (bars, bars == std::floor (bars) ? 0 : 2) + (bars == 1.0 ? " bar" : " bars")
-                + "  |  " + juce::String (proc.getHostBpm(), 1) + " BPM  |  channel 10",
-                t.withTrimmedLeft (340.0f).withTrimmedTop (80.0f).withTrimmedBottom (20.0f), juce::Justification::centredLeft);
-
-    g.setColour (juce::Colour (0xff9fa29a));
+    g.drawRect (t, 2.0f);
+    const juce::Colour keyCol[4] = { juce::Colour (0xffb5422c), juce::Colour (0xffd47a33), juce::Colour (0xffd8b546), juce::Colour (0xffe2dfd3) };
+    const float kw = 38.0f, gap = (t.getWidth() - 40.0f - 16.0f * kw) / 15.0f;
+    for (int i = 0; i < 16; ++i)
+    {
+        const auto k = juce::Rectangle<float> (t.getX() + 20.0f + (float) i * (kw + gap), t.getY() + 22.0f, kw, 56.0f);
+        g.setColour (juce::Colour (0xff1c1e1e)); g.fillRect (k.expanded (1.5f).translated (0, 1.5f));
+        g.setColour (keyCol[i / 4]); g.fillRect (k);
+        const bool on = (lit >> i) & 1;
+        const auto led = juce::Rectangle<float> (10.0f, 10.0f).withCentre ({ k.getCentreX(), k.getY() + 13.0f });
+        if (on) { g.setColour (juce::Colour (0x66ff2a1c)); g.fillEllipse (led.expanded (6.0f)); }
+        g.setColour (on ? juce::Colour (0xffff2a1c) : juce::Colour (0xff5a1a14));
+        g.fillEllipse (led);
+        g.setColour (juce::Colour (0xff9a988e));
+        g.setFont (font (13.0f));
+        g.drawText (juce::String (i + 1), k.withY (k.getBottom() + 3.0f).withHeight (16.0f), juce::Justification::centred);
+    }
+    g.setColour (notes > 0 ? kCream : juce::Colour (0xff8a8a82));
+    g.setFont (font (22.0f));
+    g.drawText (notes > 0 ? "DRAG THIS INTO YOUR DAW" : "NOTHING TO EXPORT", juce::Rectangle<float> (t.getX() + 20.0f, t.getBottom() - 54.0f, 420.0f, 40.0f), juce::Justification::centredLeft);
+    g.setColour (juce::Colour (0xff9a988e));
     g.setFont (font (15.0f));
-    g.drawText (status.isNotEmpty() ? status : "ESC OR CLICK OUTSIDE TO CLOSE", juce::Rectangle<float> (x0, c.getBottom() - 70.0f, c.getWidth() - 96.0f, 26.0f),
+    g.drawText (juce::String (notes) + " NOTES   " + juce::String (bars, bars == std::floor (bars) ? 0 : 2) + (bars == 1.0 ? " BAR   " : " BARS   ")
+                + juce::String (proc.getHostBpm(), 1) + " BPM   CH 10", juce::Rectangle<float> (t.getRight() - 420.0f, t.getBottom() - 54.0f, 400.0f, 40.0f),
+                juce::Justification::centredRight);
+
+    g.setColour (juce::Colour (0xff4a4c4a));
+    g.setFont (font (14.0f));
+    g.drawText (status.isNotEmpty() ? status : "ESC OR CLICK OUTSIDE TO CLOSE", juce::Rectangle<float> (c.getX() + 40.0f, c.getBottom() - 70.0f, c.getWidth() - 80.0f, 24.0f),
                 juce::Justification::centredLeft, true);
 }
 
@@ -706,16 +804,7 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
         const juce::String id = juce::String ("step-") + (s < 9 ? "0" : "") + juce::String (s + 1);
         auto k = std::make_unique<Key> (*find (id.toRawUTF8()), find ((id + "-led").toRawUTF8()));
         k->ledState = [this, s] { return stepLed (s); };
-        k->onPress = [this, s] (juce::ModifierKeys m)
-        {
-            if (m.isPopupMenu()) { stepKeyMenu (s); return; }   // copy / paste
-            const bool write = proc.getMode() == Unit808Processor::FirstPart || proc.getMode() == Unit808Processor::SecondPart;
-            const bool stepNumber = m.isShiftDown() || m.isAltDown() || proc.isStepNumberArmed();
-            proc.stepKey (s, m);
-            paintValue = (write && ! stepNumber) ? (proc.stepIsSet (s) ? 1 : 0) : -1;   // drag on to paint the same state
-            paintedKeys = 1u << s;
-            content.repaint();
-        };
+        k->onPress = [this, s] (juce::ModifierKeys m) { stepKeyPress (s, m); };
         k->onDrag = [this] (juce::Point<float> pos) { stepKeyDragTo (pos); };
         k->onRelease = [this] { paintValue = -1; paintedKeys = 0; };
         content.addAndMakeVisible (*k);
@@ -740,6 +829,19 @@ Unit808Editor::Unit808Editor (Unit808Processor& p) : AudioProcessorEditor (p), p
     content.addAndMakeVisible (*power);
     board = std::make_unique<BoardView> (proc);
     board->onClose = [this] { showBoard (false); };
+    board->partLeds = [this] { return partLedMask(); };
+    for (int s = 0; s < 16; ++s)   // the STEP keys on the board inside work like the ones on the panel
+    {
+        auto k = std::make_unique<PhotoKey>();
+        k->setBounds (juce::Rectangle<float> (399.0f + (float) s * 72.9f, 900.0f, 62.0f, 90.0f).toNearestInt());
+        k->setMouseCursor (juce::MouseCursor::PointingHandCursor);
+        k->ledState = [this, s] { return stepLed (s); };
+        k->onPress = [this, s] (juce::ModifierKeys m) { stepKeyPress (s, m); };
+        k->onDrag = [this] (juce::Point<float> pos) { stepKeyDragTo (pos, true); };
+        k->onRelease = [this] { paintValue = -1; paintedKeys = 0; };
+        board->addAndMakeVisible (*k);
+        board->keys[(size_t) s] = std::move (k);
+    }
     content.addChildComponent (*board);
     board->setBounds (0, 0, (int) kPanelW, (int) kPanelH);
 
@@ -762,7 +864,7 @@ void Unit808Editor::showBoard (bool show)
 {
     // the board covers the whole panel (POWER included); its plate closes it again
     board->setVisible (show);
-    if (show) board->toFront (false);
+    if (show) { board->toFront (false); board->setWantsKeyboardFocus (true); if (board->isShowing()) board->grabKeyboardFocus(); }
     about.toFront (false);
     power->showingBoard = show;
     power->repaint();
@@ -844,6 +946,7 @@ void Unit808Editor::timerCallback()
     {
         lastUi = v;
         for (auto& k : stepKeys) k->repaint();
+        if (board->isVisible()) board->repaint (juce::Rectangle<int> (300, 880, 1240, 120));
         startStop->repaint(); clear->repaint();
         content.repaint (juce::Rectangle<int> (140, 830, 240, 150));
     }
@@ -885,7 +988,7 @@ void Unit808Editor::stepKeyMenu (int key)
     const int track = proc.getTrack();
     if (mode == Unit808Processor::Play || mode == Unit808Processor::Compose)
         m.addItem (13, "Export rhythm track " + juce::String (track + 1) + " as MIDI...", proc.memory.trackLen[track].load() > 0);
-    m.showMenuAsync (menuAt (stepKeys[(size_t) key].get()),
+    m.showMenuAsync (menuAt (board->isVisible() ? (juce::Component*) board->keys[(size_t) key].get() : stepKeys[(size_t) key].get()),
                      [safe = juce::Component::SafePointer<Unit808Editor> (this), key] (int r)
                      {
                          if (safe == nullptr || r <= 0) return;
@@ -992,7 +1095,7 @@ void Unit808Editor::instrumentLabelClick (int inst, juce::ModifierKeys m)
         bool any = false;
         for (int i = 0; i < 12; ++i) any |= proc.isMuted (i) || proc.isSoloed (i);
         menu.addItem (3, "Clear all mutes and solos", any);
-        menu.showMenuAsync (menuAt (nullptr),
+        menu.showMenuAsync (menuAt (this),
                             [safe = juce::Component::SafePointer<Unit808Editor> (this), inst] (int r)
                             {
                                 if (safe == nullptr || r <= 0) return;
@@ -1011,11 +1114,32 @@ void Unit808Editor::instrumentLabelClick (int inst, juce::ModifierKeys m)
     else if (m.isAltDown()) toggleParam (Unit808Processor::muteId (inst));
 }
 
-void Unit808Editor::stepKeyDragTo (juce::Point<float> pos)
+void Unit808Editor::stepKeyPress (int s, juce::ModifierKeys m)
+{
+    if (m.isPopupMenu()) { stepKeyMenu (s); return; }   // copy / paste / export
+    const bool write = proc.getMode() == Unit808Processor::FirstPart || proc.getMode() == Unit808Processor::SecondPart;
+    const bool stepNumber = m.isShiftDown() || m.isAltDown() || proc.isStepNumberArmed();
+    proc.stepKey (s, m);
+    paintValue = (write && ! stepNumber) ? (proc.stepIsSet (s) ? 1 : 0) : -1;   // drag on to paint the same state
+    paintedKeys = 1u << s;
+    content.repaint();
+}
+
+int Unit808Editor::partLedMask() const
+{
+    const int mode = proc.getMode();
+    bool p1 = mode != Unit808Processor::SecondPart;
+    if (proc.isRunning()) p1 = proc.getPlayPart() == 0;
+    if (mode == Unit808Processor::FirstPart || mode == Unit808Processor::SecondPart) p1 = mode == Unit808Processor::FirstPart;
+    return p1 ? 1 : 2;
+}
+
+void Unit808Editor::stepKeyDragTo (juce::Point<float> pos, bool inside)
 {
     if (paintValue < 0) return;
-    for (int s = 0; s < (int) stepKeys.size(); ++s)
-        if (stepKeys[(size_t) s]->getBounds().toFloat().contains (pos.x, stepKeys[(size_t) s]->getBounds().toFloat().getCentreY())
+    for (int s = 0; s < 16; ++s)
+        if (const auto r = inside ? board->keys[(size_t) s]->getBounds().toFloat() : stepKeys[(size_t) s]->getBounds().toFloat();
+            r.contains (pos.x, r.getCentreY())
             && (paintedKeys & (1u << s)) == 0)
         {
             paintedKeys |= 1u << s;

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(UNIT808 VERSION 0.4.2)
+project(UNIT808 VERSION 0.4.3)
 string(TIMESTAMP U808_BUILD_DATE "%d %b %Y" UTC)
 
 set(CMAKE_CXX_STANDARD 17)

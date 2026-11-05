@@ -431,6 +431,27 @@ int main (int argc, char** argv)
         auto bf = outDir.getChildFile ("editor_board.png");
         bf.deleteFile();
         if (auto os = std::unique_ptr<juce::OutputStream> (bf.createOutputStream())) png.writeImageToStream (bimg, *os);
+        // the STEP keys inside work like the panel ones; the POWER switch and the power supply close the board
+        if (auto* e8 = dynamic_cast<Unit808Editor*> (ed.get()))
+        {
+            const int oldMode = proc.getMode();
+            setParam ("mode", P::FirstPart);
+            auto& bv = e8->boardView();
+            const bool before = proc.stepIsSet (5);
+            bv.keys[5]->onPress ({}); bv.keys[5]->onRelease();
+            const bool after = proc.stepIsSet (5);
+            bv.keys[5]->onPress ({}); bv.keys[5]->onRelease();
+            check (after != before && proc.stepIsSet (5) == before, "board inside: STEP key 6 writes and clears the step");
+            check (unit808ui::BoardView::closesBoard ({ 148.0f, 100.0f }) && unit808ui::BoardView::closesBoard ({ 220.0f, 520.0f })
+                   && ! unit808ui::BoardView::closesBoard ({ 900.0f, 500.0f }), "board inside: POWER switch and power supply close it, the voice board does not");
+            bool closed = false;
+            auto old = bv.onClose;
+            bv.onClose = [&] { closed = true; };
+            bv.keyPressed (juce::KeyPress (juce::KeyPress::escapeKey));
+            bv.onClose = old;
+            check (closed, "board inside: Esc closes it");
+            setParam ("mode", (float) oldMode);
+        }
         // the MIDI export window
         if (auto* e8 = dynamic_cast<Unit808Editor*> (ed.get())) { e8->showBoard (false); e8->exportMidi ({}); }
         auto ximg = ed->createComponentSnapshot (ed->getLocalBounds(), true, 1.0f);

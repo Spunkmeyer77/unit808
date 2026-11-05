@@ -130,6 +130,21 @@ public:
 };
 
 // The circuit board inside, with the 29 trimmers; clicking the plate closes it
+// a STEP key of the photo inside the box: it plays exactly like the front-panel key
+class PhotoKey : public juce::Component
+{
+public:
+    void paint (juce::Graphics&) override;
+    void mouseDown (const juce::MouseEvent& e) override { down = true; repaint(); if (onPress) onPress (e.mods); }
+    void mouseDrag (const juce::MouseEvent& e) override { if (onDrag) onDrag (e.getEventRelativeTo (getParentComponent()).position); }
+    void mouseUp (const juce::MouseEvent&) override { down = false; repaint(); if (onRelease) onRelease(); }
+    std::function<void (juce::ModifierKeys)> onPress;
+    std::function<void (juce::Point<float>)> onDrag;
+    std::function<void()> onRelease;
+    std::function<int()> ledState;       // 0 off, 1 red, 2 blue (flam)
+    bool down = false;
+};
+
 class BoardView : public juce::Component
 {
 public:
@@ -137,7 +152,12 @@ public:
     ~BoardView() override;
     void paint (juce::Graphics&) override;
     void mouseUp (const juce::MouseEvent&) override;
+    void mouseMove (const juce::MouseEvent&) override;
+    bool keyPressed (const juce::KeyPress& k) override { if (k == juce::KeyPress::escapeKey && onClose) { onClose(); return true; } return false; }
+    static bool closesBoard (juce::Point<float>);   // the black POWER switch, the power supply, the Rhythm Composer lettering
     std::function<void()> onClose;
+    std::function<int()> partLeds;       // bit 0: 1st PART, bit 1: 2nd PART
+    std::array<std::unique_ptr<PhotoKey>, 16> keys;
 private:
     juce::Image board;
     TrimmerLookAndFeel lnf;
@@ -181,6 +201,7 @@ class ExportPanel : public juce::Component
 {
 public:
     explicit ExportPanel (Unit808Processor&);
+    ~ExportPanel() override;
     void show (const Unit808Processor::ExportSpec&);
     void paint (juce::Graphics&) override;
     void resized() override;
@@ -193,10 +214,12 @@ public:
 private:
     Unit808Processor& proc;
     Unit808Processor::ExportSpec spec;
+    std::unique_ptr<juce::LookAndFeel> lnf;
     juce::String name, status;
+    uint16_t lit = 0;
     int notes = 0; double bars = 0;
     bool pressedInTile = false, dragging = false;
-    juce::TextButton saveBtn { "SAVE .MID FILE..." }, swingBtn { "WRITE SWING INTO THE NOTES" }, muteBtn { "LEAVE OUT MUTED / SOLOED-OUT" };
+    juce::TextButton saveBtn { "SAVE .MID FILE" }, swingBtn { "WRITE SWING INTO THE NOTES" }, muteBtn { "LEAVE OUT MUTED / SOLOED-OUT INSTRUMENTS" };
     std::unique_ptr<juce::FileChooser> chooser;
     void refresh();
     juce::File tempFile() const;
@@ -238,6 +261,7 @@ private:
 public:
     void showBoard (bool);   // POWER: the circuit board inside
     void exportMidi (const Unit808Processor::ExportSpec& x) { exporter.show (x); }
+    unit808ui::BoardView& boardView() { return *board; }
 private:
     std::vector<std::unique_ptr<unit808ui::ChannelLabel>> channelLabels;
     struct Led { const unit808ui::Ctrl* c; juce::Image off, on; };
@@ -251,7 +275,9 @@ private:
     int stepLed (int s) const;
     void instrumentLabelClick (int inst, juce::ModifierKeys m);
     void toggleParam (const juce::String& id);
-    void stepKeyDragTo (juce::Point<float>);
+    void stepKeyDragTo (juce::Point<float>, bool inside = false);
+    void stepKeyPress (int s, juce::ModifierKeys m);
+    int partLedMask() const;
     void startStopMenu();
     void stepKeyMenu (int key);
     void clearMenu();

@@ -5,3 +5,7 @@
    (e.g. the black switch top-left in the photo acts as POWER, plus Esc), and check the click really works.
 3. Export MIDI window looks too modern and breaks the old-school style. Restyle it like the hardware
    (panel greys, silkscreen lettering, 808-style keys instead of flat buttons).
+4. Interior view: the 16 STEP keys on the lower board must work like the front-panel ones (click, Shift/Alt,
+   drag painting, right-click menu), with live LEDs (red / blue flam / running light). Paint the photo's
+   always-lit LEDs "off" in make_board.py and draw the real LED state on top. Ideally the 1st/2nd PART
+   LEDs follow too.

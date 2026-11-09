@@ -256,7 +256,7 @@ def manual():
     toc = [("INTRODUCTION", 4, True), ("BASIC COURSE", 5, True), ("Installation", 5), ("Front Panel Layout", 6),
            ("Writing Rhythm Patterns", 7), ("Playing Rhythm Patterns", 9), ("Intro / Fill In", 10),
            ("Composing and Playing Rhythm Tracks", 11), ("ADVANCED COURSE", 12, True), ("Control Descriptions", 12),
-           ("Step Number, 2nd Part, Clearing, Copy and Paste", 13), ("Pre-Scale, Swing and Flam", 14), ("Sound Controls", 14),
+           ("Step Number, 2nd Part, Clearing, Copy and Paste", 13), ("Pre-Scale, Swing and Flam", 14), ("Writing Flams", 14), ("Sound Controls", 15),
            ("Mute and Solo, Selecting with the Name Windows", 15), ("Playing from MIDI", 16), ("Running in a DAW, Saving, MIDI Mapping", 16),
            ("How Each Voice Is Modelled", 17), ("Inside the Box (Trimmers)", 18), ("Exporting MIDI", 20), ("About Window, Window Size, Troubleshooting", 21), ("Specifications, System Requirements", 22)]
     d.page('<div class="toc"><div class="sec"><span class="sect">TABLE OF CONTENTS</span></div>'
@@ -403,15 +403,19 @@ Undo paste takes back the last paste.</p></div></div>'''),
 <tr><td>3</td><td>16th note (normal)</td><td>one 4/4 bar</td></tr><tr><td>4</td><td>8th-note triplet</td><td>5 &frac13; beats</td></tr></table>
 <p>SWING {C["F"]} delays every second step towards the next: at 0 the steps are even, at 10 the off-beat step comes 75 % of the way
 through the pair. Rhythms stay lined up with the bars of your song.</p>
-<h4>FLAM</h4><p>A flammed step plays a soft grace note on the step and the main hit just after it, like a drummer&rsquo;s flam.
-Option/Alt-click a STEP key in 1st or 2nd PART to flam the selected instrument on that step (it lights blue). FLAM {C["G"]}
-sets the gap, from TIGHT (5 ms) to LOOSE (40 ms).</p></div>''')
-        + topic("Sound Controls", '''<table><tr><th>CHANNEL</th><th>CONTROLS</th><th>SWITCH</th></tr>
-<tr><td>Bass Drum</td><td>Level, Tone, Decay</td><td></td></tr><tr><td>Snare Drum</td><td>Level, Tone, Snappy</td><td></td></tr>
-<tr><td>Low / Mid / Hi</td><td>Level, Tuning</td><td>Tom or Conga</td></tr><tr><td>Rim Shot</td><td>Level</td><td>Rim Shot or Claves</td></tr>
-<tr><td>Hand Clap</td><td>Level</td><td>Hand Clap or Maracas</td></tr><tr><td>Cow Bell</td><td>Level</td><td></td></tr>
-<tr><td>Cymbal</td><td>Level, Tone, Decay</td><td></td></tr><tr><td>Open Hi-Hat</td><td>Level, Decay</td><td></td></tr>
-<tr><td>Closed Hi-Hat</td><td>Level</td><td>(a closed hi-hat cuts off the open one)</td></tr></table>'''),
+</div>''')
+        + topic("Writing Flams", f'''<div class="cols2"><p>A flammed step plays a soft grace note on the step and the main hit
+just after it, like a drummer&rsquo;s flam. Flams belong to one instrument on one step: the snare can flam on a step while the bass drum
+on the same step plays a normal hit.</p>
+<h4>PROCEDURE</h4><ol>
+<li>Set MODE {C["B"]} to 1st PART or 2nd PART.</li>
+<li>Turn INSTRUMENT-SELECT {C["C"]} (or click a channel name) to the instrument you want to flam. Any instrument except AC can flam.</li>
+<li><b>Option/Alt-click</b> the STEP key {C["R"]} of the step. The step is written (if it was empty) and its light turns <b>blue</b>.</li>
+<li>Press play in your DAW and turn FLAM {C["G"]} to set the gap between the grace note and the main hit:
+TIGHT (5 ms) to LOOSE (40 ms). One FLAM setting is used for all flams.</li></ol>
+<p class="note">To make a flam a normal hit again, Option/Alt-click the blue step: it turns red. A normal click clears the step.
+An accent (AC) on the same step makes both the grace note and the main hit louder. Flams work the same way with the STEP keys
+inside the box, are copied and pasted with the rhythm, and are exported to MIDI as two notes.</p></div>'''),
         "ADVANCED COURSE", True)
 
     d.page(topic("Mute and Solo", f"""<div class="cols2"><div>
@@ -426,7 +430,13 @@ right-click opens the menu; the dimmed or red state shows on the INSTRUMENT-SELE
 <p class="note">Mutes and solos also apply to MIDI notes, are saved with your project and can be automated.</p></div></div>""")
         + topic("Selecting with the Name Windows", f"""<p>Click a channel&rsquo;s name window (ACCENT, BASS DRUM, SNARE DRUM &hellip;, or LOW CONGA, CLAVES, MARACAS
 above) to select that instrument for writing (Shift-click and Option/Alt-click mute and solo it), the same as turning INSTRUMENT-SELECT {C["C"]}. The selected channel&rsquo;s window
-has an orange frame. Toms and congas share one row, so LOW TOM and LOW CONGA select the same instrument.</p>"""),
+has an orange frame. Toms and congas share one row, so LOW TOM and LOW CONGA select the same instrument.</p>""")
+        + topic("Sound Controls", '''<table><tr><th>CHANNEL</th><th>CONTROLS</th><th>SWITCH</th></tr>
+<tr><td>Bass Drum / Snare Drum</td><td>Level, Tone, Decay / Level, Tone, Snappy</td><td></td></tr>
+<tr><td>Low / Mid / Hi</td><td>Level, Tuning</td><td>Tom or Conga</td></tr>
+<tr><td>Rim Shot / Hand Clap</td><td>Level</td><td>Rim Shot or Claves / Hand Clap or Maracas</td></tr>
+<tr><td>Cow Bell / Cymbal</td><td>Level / Level, Tone, Decay</td><td></td></tr>
+<tr><td>Open / Closed Hi-Hat</td><td>Level, Decay / Level</td><td>(a closed hi-hat cuts off the open one)</td></tr></table>'''),
         "ADVANCED COURSE", True)
 
     d.page(topic("Playing from MIDI", '''<p>MIDI notes play the sounds (General MIDI drum map). Velocity works like accent:

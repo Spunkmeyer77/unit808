@@ -8,3 +8,7 @@
    CMake project version, About window, manual (title, cover, footers, contact/maker), update history
    (1.0.0 entry: first release under Transistor Labs), README, installers (Inno Setup publisher/AppId name,
    pkg identifiers com.transistorlabs.*), BUNDLE_ID com.transistorlabs.unit808, faceplate <title>.
+5. Treat 1.0.0 as a NEW plugin: new PLUGIN_MANUFACTURER_CODE "Trlb" (Transistor Labs; one capital letter,
+   as Apple requires), new Windows AppId, new bundle/pkg ids com.transistorlabs.*. Old 0.4.x installs are
+   left alone (users can uninstall them); old projects will not find it automatically. Say so in the manual
+   (installation notes) and update history.

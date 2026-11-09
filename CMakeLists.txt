@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 # must come before project(): otherwise the macOS build targets the build machine's own macOS version
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version")
 
-project(UNIT808 VERSION 1.0.1)
+project(UNIT808 VERSION 1.0.2)
 string(TIMESTAMP U808_BUILD_DATE "%d %b %Y" UTC)
 
 set(CMAKE_CXX_STANDARD 17)

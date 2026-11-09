@@ -547,6 +547,10 @@ the contact address, the Transistor Labs store, and a button that opens this man
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("1.0.2", "", [
+        "Brighter, bigger STEP LEDs with a soft glow (front panel and inside the box); the running light glows the most",
+        "Manual: new Writing Flams chapter",
+    ]),
     ("1.0.1", "", [
         "Fixed: 1.0.0 would not open on older macOS versions (it was built for macOS 15 only). UNIT808 runs again on macOS 10.13 and later",
     ]),

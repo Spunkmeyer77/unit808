@@ -273,6 +273,7 @@ private:
     void paintPanel (juce::Graphics&);
     void timerCallback() override;
     int stepLed (int s) const;
+    int stepLedBase (int s) const;
     void instrumentLabelClick (int inst, juce::ModifierKeys m);
     void toggleParam (const juce::String& id);
     void stepKeyDragTo (juce::Point<float>, bool inside = false);

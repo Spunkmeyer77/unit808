@@ -225,6 +225,29 @@ Key::Key (const Ctrl& c, const Ctrl* l) : ctrl (c), led (l)
     setMouseCursor (juce::MouseCursor::PointingHandCursor);
 }
 
+// step LED: 0 off, 1 red, 2 blue (flam), 3 red running light (strongest glow)
+void drawStepLed (juce::Graphics& g, juce::Point<float> c, float r, int st)
+{
+    if (st <= 0)
+    {
+        g.setColour (juce::Colour (0xff5f1612)); g.fillEllipse (juce::Rectangle<float> (2 * r, 2 * r).withCentre (c));
+        g.setColour (juce::Colour (0xff280a08)); g.drawEllipse (juce::Rectangle<float> (2 * r, 2 * r).withCentre (c), 1.0f);
+        g.setColour (juce::Colour (0x78aa5a50)); g.fillEllipse (juce::Rectangle<float> (r * 0.45f, r * 0.4f).withCentre (c.translated (-r * 0.28f, -r * 0.5f)));
+        return;
+    }
+    const auto col = st == 2 ? juce::Colour (0xff5096ff) : juce::Colour (0xffff2819);
+    const float gr = r * (st == 3 ? 2.8f : 2.4f);   // stays on the key cap
+    g.setGradientFill (juce::ColourGradient (col.withAlpha (st == 3 ? 0.9f : 0.7f), c, col.withAlpha (0.0f), c.translated (gr, 0), true));
+    g.fillEllipse (juce::Rectangle<float> (2 * gr, 2 * gr).withCentre (c));
+    g.setColour (col); g.fillEllipse (juce::Rectangle<float> (2 * r, 2 * r).withCentre (c));
+    g.setColour (juce::Colour (0xff3c0a08)); g.drawEllipse (juce::Rectangle<float> (2 * r, 2 * r).withCentre (c), 1.0f);
+    g.setGradientFill (juce::ColourGradient ((st == 2 ? juce::Colour (0xffe1f0ff) : juce::Colour (0xffffe6dc)).withAlpha (0.85f), c,
+                                             col.withAlpha (0.0f), c.translated (r * 0.6f, 0), true));
+    g.fillEllipse (juce::Rectangle<float> (1.2f * r, 1.2f * r).withCentre (c));
+    g.setColour (juce::Colours::white.withAlpha (0.85f));
+    g.fillEllipse (juce::Rectangle<float> (r * 0.5f, r * 0.45f).withCentre (c.translated (-r * 0.3f, -r * 0.5f)));
+}
+
 void Key::paint (juce::Graphics& g)
 {
     const juce::Point<float> o ((float) getX(), (float) getY());
@@ -234,7 +257,8 @@ void Key::paint (juce::Graphics& g)
     {
         const int st = ledState ? ledState() : 0;
         // the LED sits on the key cap and moves down with it
-        drawAt (g, st == 2 ? ledBlue : (st == 1 ? ledOnImg : ledOff), led->a[st > 0 ? 1 : 0], o, juce::AffineTransform::translation (0, d ? 2.0f : 0.0f));
+        const auto& a = led->a[0];   // brighter, bigger LED with a glow, drawn instead of the LED art
+        drawStepLed (g, { a.x + a.w * 0.5f - o.x, a.y + a.h * 0.5f - o.y + (d ? 2.0f : 0.0f) }, 8.5f, st);
     }
 }
 
@@ -352,7 +376,7 @@ void PhotoKey::paint (juce::Graphics& g)
         g.fillRect (juce::Rectangle<float> (6.0f, 9.0f, 50.0f, 79.0f));
     }
     const int st = ledState ? ledState() : 0;
-    if (st > 0) ledGlow (g, { 30.5f, down ? 27.0f : 25.0f }, st == 2 ? juce::Colour (0xff3d8bff) : juce::Colour (0xffff2a1c), 8.5f);
+    if (st > 0) drawStepLed (g, { 30.5f, down ? 27.0f : 25.0f }, 10.0f, st);
 }
 
 bool BoardView::closesBoard (juce::Point<float> p)
@@ -877,6 +901,12 @@ void Unit808Editor::Content::mouseUp (const juce::MouseEvent& e)
 }
 
 int Unit808Editor::stepLed (int s) const
+{
+    const int st = stepLedBase (s);
+    return (st == 1 && s == proc.getPlayStep()) ? 3 : st;   // the running light glows the most
+}
+
+int Unit808Editor::stepLedBase (int s) const
 {
     if (! proc.isPowerOn()) return 0;
     if (s == flashKey && juce::Time::getMillisecondCounter() < flashUntil)   // just pasted here

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="0.8" y2="1">
+      <stop stop-color="#607a92"/><stop offset=".12" stop-color="#446785"/><stop offset=".55" stop-color="#365775"/><stop offset="1" stop-color="#243d57"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#587d9c"/><stop offset=".42" stop-color="#466d90"/><stop offset="1" stop-color="#355776"/>
+    </linearGradient>
+    <linearGradient id="bevel" x1="0" y1="0" x2=".2" y2="1">
+      <stop stop-color="#1b3041"/><stop offset=".5" stop-color="#29435a"/><stop offset="1" stop-color="#8ba1ac"/>
+    </linearGradient>
+    <pattern id="grain" width="3.7" height="4.3" patternUnits="userSpaceOnUse">
+      <circle cx=".6" cy="1" r=".14" fill="#d4e0e2" opacity=".18"/>
+      <circle cx="2.4" cy="2.7" r=".17" fill="#122b3e" opacity=".24"/>
+      <path d="M1.2 3.4h.45" stroke="#c5d3d7" stroke-width=".12" opacity=".15"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="145%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.4"/>
+    </filter>
+    <mask id="rotor-clearance" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <path d="M0 0H100V100H0Z" fill="white"/>
+      <circle cx="50" cy="50" r="30" fill="black"/>
+    </mask>
+  </defs>
+  <g mask="url(#rotor-clearance)">
+    <rect x="9.4" y="10.7" width="81.2" height="81.2" rx="3.5" fill="#060d13" opacity=".48" filter="url(#shadow)"/>
+    <rect x="9" y="9" width="82" height="82" rx="3.2" fill="url(#shell)"/>
+    <rect x="9.35" y="9.35" width="81.3" height="81.3" rx="2.9" fill="none" stroke="#162b3a" stroke-width=".7"/>
+    <path d="M12.8 10.1H87.2Q89.9 10.1 89.9 12.8" fill="none" stroke="#adc0c9" stroke-opacity=".68" stroke-width=".65"/>
+    <path d="M10.2 13V86.6" stroke="#8da9b9" stroke-opacity=".55" stroke-width=".55"/>
+    <path d="M12.9 89.8H87.2Q89.8 89.8 89.8 87.2V13" fill="none" stroke="#152c40" stroke-width="1.05"/>
+    <rect x="11.8" y="11.8" width="76.4" height="76.4" rx="1.4" fill="url(#face)"/>
+    <rect x="12" y="12" width="76" height="76" rx="1.3" fill="url(#grain)"/>
+    <path d="M13.5 12.2H86.5M12.2 14V86" fill="none" stroke="#9eb5c2" stroke-opacity=".32" stroke-width=".4"/>
+    <path d="M13.5 87.8H86.5M87.8 13.5V86.5" stroke="#1d3c55" stroke-opacity=".65" stroke-width=".6"/>
+    <circle cx="50" cy="50" r="31.25" fill="none" stroke="#20384b" stroke-opacity=".35" stroke-width="1.4"/>
+    <circle cx="50" cy="50" r="30.6" fill="none" stroke="url(#bevel)" stroke-width="1.2"/>
+    <g fill="none" stroke-linecap="round">
+      <path d="M17 15.1h9.5M74.2 84.8h7" stroke="#b5c3c8" stroke-opacity=".22" stroke-width=".3"/>
+      <path d="M15.4 23.8v5.1M83.7 70.5v6.2M27.5 85.1h4.3" stroke="#162f43" stroke-opacity=".25" stroke-width=".35"/>
+    </g>
+    <g fill="#29465e" stroke="#90a6b4" stroke-opacity=".3" stroke-width=".3">
+      <circle cx="16" cy="16" r="1.2"/><circle cx="84" cy="16" r="1.2"/>
+      <circle cx="16" cy="84" r="1.2"/><circle cx="84" cy="84" r="1.2"/>
+    </g>
+  </g>
+</svg>

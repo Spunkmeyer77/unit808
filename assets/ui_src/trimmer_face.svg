@@ -24,16 +24,5 @@
     <circle cx="50" cy="50" r="28.4" fill="none" stroke="#f6e6b0" stroke-opacity=".35" stroke-width=".3"/>
     <path d="M24.1 39.6A27.9 27.9 0 0 1 67.8 28.5" fill="none" stroke="#fff0c2" stroke-opacity=".32" stroke-width=".45"/>
     <path d="M31.7 71.2A28 28 0 0 0 76.6 58.7" fill="none" stroke="#6f5830" stroke-opacity=".38" stroke-width=".5"/>
-    <rect x="45.2" y="25" width="9.6" height="50" rx="2.6" fill="#f4dfa1" fill-opacity=".65"/>
-    <rect x="45.3" y="24.6" width="9.4" height="49.8" rx="2.5" fill="#745d33"/>
-    <rect x="46" y="25.1" width="8" height="48.7" rx="2" fill="url(#slot-wall)"/>
-    <path d="M47 28V71.8" stroke="#171913" stroke-opacity=".8" stroke-width=".75"/>
-    <path d="M53.4 28V71.5" stroke="#a58a50" stroke-opacity=".48" stroke-width=".45"/>
-    <path d="M48.2 73.3H51.8" stroke="#dbc286" stroke-opacity=".65" stroke-width=".45" stroke-linecap="round"/>
-    <path d="M50 21.7 52 24.3H48Z" fill="#f6eed4" stroke="#816c42" stroke-width=".3" stroke-linejoin="round"/>
-    <g fill="none" stroke-linecap="round">
-      <path d="M31.1 43.8h4.2M62.8 59.2h3.7M36.7 64.8h2.6" stroke="#f6e3ac" stroke-opacity=".28" stroke-width=".18"/>
-      <path d="M34 44.3h2.2M63.3 59.6h2.4" stroke="#705a33" stroke-opacity=".18" stroke-width=".15"/>
-    </g>
   </g>
 </svg>

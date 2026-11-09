@@ -176,7 +176,7 @@ CALLOUTS = [
     ("I", "TONE \u00b7 TUNING \u00b7 SNAPPY \u00b7 DECAY", " Controls", (1460, 360), (1960, 330), "l"),
     ("J", "Sound Selector", " Switches", (1240, 524), (1960, 520), "l"),
     ("K", "MASTER VOLUME", " Control", (1735, 656), (1960, 660), "l"),
-    ("L", "TICCO ROSS", " Logo (About)", (1600, 124), (1960, 124), "l"),
+    ("L", "TRANSISTOR LABS", " Logo (About)", (1600, 124), (1960, 124), "l"),
     ("M", "BASIC-VARIATION", " Lever", (192, 798), (-60, 840), "r"),
     ("N", "", "Variation Indicators A / B", (192, 852), (-60, 920), "r"),
     ("O", "START/STOP", " Button", (187, 955), (-60, 1010), "r"),
@@ -258,13 +258,13 @@ def manual():
            ("Composing and Playing Rhythm Tracks", 11), ("ADVANCED COURSE", 12, True), ("Control Descriptions", 12),
            ("Step Number, 2nd Part, Clearing, Copy and Paste", 13), ("Pre-Scale, Swing and Flam", 14), ("Sound Controls", 14),
            ("Mute and Solo, Selecting with the Name Windows", 15), ("Playing from MIDI", 16), ("Running in a DAW, Saving, MIDI Mapping", 16),
-           ("How Each Voice Is Modelled", 17), ("Inside the Box (Trimmers)", 18), ("Exporting MIDI", 20), ("About Window, Window Size, Troubleshooting", 21), ("Specifications", 22)]
+           ("How Each Voice Is Modelled", 17), ("Inside the Box (Trimmers)", 18), ("Exporting MIDI", 20), ("About Window, Window Size, Troubleshooting", 21), ("Specifications, System Requirements", 22)]
     d.page('<div class="toc"><div class="sec"><span class="sect">TABLE OF CONTENTS</span></div>'
            + "".join(toc_line(t[0], t[1], len(t) > 2) for t in toc) + "</div>")
 
     d.page('''<div class="cols3">
-<p>The Ticco Ross UNIT808 is a computer-controlled Rhythm Composer for your computer, modelled on the 1981 classic.
-Its sounds are synthesized, not sampled: the same sound engine as the Ticco Ross UNIT 808 Max for Live device,
+<p>The Transistor Labs UNIT808 is a computer-controlled Rhythm Composer for your computer, modelled on the 1981 classic.
+Its sounds are synthesized, not sampled: the same sound engine as the UNIT 808 Max for Live device,
 built from analog-style circuits for every instrument.</p>
 <p>Eleven sound channels play sixteen sounds: Bass Drum, Snare Drum, Low, Mid and Hi Tom or Conga, Rim Shot or Claves,
 Hand Clap or Maracas, Cow Bell, Cymbal, Open Hi-Hat and Closed Hi-Hat, plus ACcent. Each has its own LEVEL control,
@@ -287,11 +287,11 @@ click <b>Open Anyway</b>.</li><li>Click <b>Customize</b> to skip the AU, the VST
 <p>Installed to /Library/Audio/Plug-Ins/Components, /Library/Audio/Plug-Ins/VST3 and /Applications.</p>
 <h4>Windows</h4><ol><li>Run <b>UNIT808-''' + VERSION + '''-Windows-Setup.exe</b>.</li>
 <li>If SmartScreen appears, click <b>More info &rarr; Run anyway</b>.</li></ol>
-<p>The VST3 goes to C:\\Program Files\\Common Files\\VST3, the application to the Start menu under Ticco Ross.</p>
+<p>The VST3 goes to C:\\Program Files\\Common Files\\VST3, the application to the Start menu under Transistor Labs.</p>
 <h4>Linux</h4><ol><li>Unpack the <b>.tar.gz</b> and run <b>./install.sh</b>.</li></ol>
 <p>VST3 to ~/.vst3, LV2 to ~/.lv2, the application to ~/.local/bin/UNIT808.</p>
 <h4>Loading it in Ableton Live</h4><ol><li>Settings &rarr; Plug-Ins: turn on <b>Use Audio Units v2</b> (Mac) or
-<b>VST3</b>, then click <b>Rescan</b>.</li><li>In the browser, open Plug-Ins &rarr; Ticco Ross &rarr; <b>UNIT808</b> and
+<b>VST3</b>, then click <b>Rescan</b>.</li><li>In the browser, open Plug-Ins &rarr; Transistor Labs &rarr; <b>UNIT808</b> and
 drag it onto a MIDI track.</li><li>Press Play in Live. UNIT808 plays in time with the song.</li></ol></div>'''),
            "BASIC COURSE")
 
@@ -356,7 +356,7 @@ then write it in 1st PART).</p><h4>PROCEDURE</h4><ol>
            "BASIC COURSE", True)
 
     d.page(topic("Control Descriptions", '<div class="cols3">' +
-        ctl("A", "POWER Switch", "Opens the circuit board inside with its 29 trimmers (see INSIDE THE BOX). UNIT808 keeps playing; click the Ticco Ross plate on the board to close it.") +
+        ctl("A", "POWER Switch", "Opens the circuit board inside with its 29 trimmers (see INSIDE THE BOX). UNIT808 keeps playing; the black POWER switch or the power supply inside closes it again.") +
         ctl("B", "MODE Selector", "PATTERN CLEAR, 1st PART and 2nd PART (pattern write), MANUAL PLAY, PLAY and COMPOSE.") +
         ctl("C", "INSTRUMENT-SELECT", "The instrument the STEP keys write (AC, BD, SD, LT, MT, HT, RS, CP, CB, CY, OH, CH). In PLAY and COMPOSE: the Rhythm Track 1 &ndash; 12. Its printed labels also mute and solo (see MUTE AND SOLO).") +
         ctl("D", "CLEAR Button", "PATTERN CLEAR mode: clears the rhythm. COMPOSE: clears the track (TRACK CLEAR). 1st/2nd PART: sets the step number (see ADVANCED COURSE).") +
@@ -367,7 +367,7 @@ then write it in 1st PART).</p><h4>PROCEDURE</h4><ol>
         ctl("I", "TONE, TUNING, SNAPPY, DECAY", "Bass Drum tone and decay, Snare Drum tone and snappy, tom/conga tuning, Cymbal tone and decay, Open Hi-Hat decay.") +
         ctl("J", "Sound Selector Switches", "Low/Mid/Hi Tom or Conga, Rim Shot or Claves, Hand Clap or Maracas. Up = the upper label.") +
         ctl("K", "MASTER VOLUME", "The output level.") +
-        ctl("L", "Ticco Ross Logo", "Opens the About window.") +
+        ctl("L", "Transistor Labs Logo", "Opens the About window.") +
         ctl("M", "BASIC-VARIATION Lever", "A, AB (A then B) or B. When writing, A or B chooses the variation written.") +
         ctl("N", "Variation Indicators", "Show the playing variation.") +
         ctl("O", "START/STOP", "Shows your DAW&rsquo;s transport. In the standalone application it starts and stops; right-click it for the tempo.") +
@@ -416,16 +416,16 @@ sets the gap, from TIGHT (5 ms) to LOOSE (40 ms).</p></div>''')
 
     d.page(topic("Mute and Solo", f"""<div class="cols2"><div>
 <p>The printed labels around INSTRUMENT-SELECT {C["C"]} (AC, BD, SD &hellip; CH) mute and solo the instruments, also while the rhythm plays:</p>
-<ul><li><b>Option/Alt-click</b> a label: mute that instrument. The label is dimmed.</li>
-<li><b>Shift-click</b> a label: solo it. The label glows red. Several instruments can be soloed at once; then only they play.</li>
+<ul><li><b>Shift-click</b> a label: mute that instrument. The label is dimmed.</li>
+<li><b>Option/Alt-click</b> a label: solo it. The label glows red. Several instruments can be soloed at once; then only they play.</li>
 <li><b>Right-click</b> a label: a menu with Mute, Solo and Clear all mutes and solos.</li>
 <li>A plain click selects the instrument, as before.</li></ul>
-<p>The channel name windows (ACCENT, BASS DRUM &hellip;, LOW CONGA &hellip; MARACAS) work the same way: Option/Alt-click mutes, Shift-click solos,
+<p>The channel name windows (ACCENT, BASS DRUM &hellip;, LOW CONGA &hellip; MARACAS) work the same way: Shift-click mutes, Option/Alt-click solos,
 right-click opens the menu; the dimmed or red state shows on the INSTRUMENT-SELECT labels.</p></div>
 <div><p class="note">Muting AC plays the rhythm without accents. AC cannot be soloed.</p>
 <p class="note">Mutes and solos also apply to MIDI notes, are saved with your project and can be automated.</p></div></div>""")
         + topic("Selecting with the Name Windows", f"""<p>Click a channel&rsquo;s name window (ACCENT, BASS DRUM, SNARE DRUM &hellip;, or LOW CONGA, CLAVES, MARACAS
-above) to select that instrument for writing (Option/Alt-click and Shift-click mute and solo it), the same as turning INSTRUMENT-SELECT {C["C"]}. The selected channel&rsquo;s window
+above) to select that instrument for writing (Shift-click and Option/Alt-click mute and solo it), the same as turning INSTRUMENT-SELECT {C["C"]}. The selected channel&rsquo;s window
 has an orange frame. Toms and congas share one row, so LOW TOM and LOW CONGA select the same instrument.</p>"""),
         "ADVANCED COURSE", True)
 
@@ -495,8 +495,8 @@ Trimmers are saved with your project and can be automated. At their defaults UNI
 RS 37 (claves 75), CP 39 (maracas 70), CB 56, CY 49, OH 46, CH 42; the toms, RS and CP follow their selector switches. Accented steps have velocity 127,
 the others 100; flams are a soft grace note and the main hit after the FLAM time. Tempo is the DAW&rsquo;s, 4/4, PRE-SCALE is respected.</p>'''), "ADVANCED COURSE", True)
 
-    d.page(topic("About Window", '''<p>Click the Ticco Ross logo for the About window: version, build date, the format and host it runs in,
-the contact address, the Ticco Ross store, and a button that opens this manual. Click anywhere to close it.</p>''')
+    d.page(topic("About Window", '''<p>Click the Transistor Labs logo for the About window: version, build date, the format and host it runs in,
+the contact address, the Transistor Labs store, and a button that opens this manual. Click anywhere to close it.</p>''')
         + topic("Window Size", '<p>Drag the bottom-right corner to resize the window, from 40 % to 100 % of the full panel size.</p>')
         + topic("Troubleshooting", '''<table><tr><th>PROBLEM</th><th>REMEDY</th></tr>
 <tr><td>macOS won&rsquo;t open the installer</td><td>System Settings &rarr; Privacy &amp; Security &rarr; Open Anyway.</td></tr>
@@ -505,6 +505,7 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 <tr><td>The STEP keys do not write</td><td>Writing works in 1st PART and 2nd PART. In the other modes the keys choose rhythms.</td></tr>
 <tr><td>A rhythm change waits</td><td>While playing, a new rhythm starts at the next bar (its indicator blinks).</td></tr>
 <tr><td>The wrong variation is written</td><td>Check the BASIC-VARIATION lever: A or B (AB writes A).</td></tr>
+<tr><td>An old song can&rsquo;t find UNIT808</td><td>1.0 is a new Transistor Labs plug-in: songs saved with 0.4.x need UNIT808 1.0 loaded again.</td></tr>
 <tr><td>A track does not play</td><td>MODE must be PLAY, and INSTRUMENT-SELECT must point at the track number.</td></tr></table>'''),
         "ADVANCED COURSE", True)
 
@@ -520,8 +521,14 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 <p><b>&#9675; Timing</b><br>Follows the DAW&rsquo;s tempo and transport; Pre-Scale &times; 4; Swing</p>
 <p><b>&#9675; Formats</b><br>macOS: AU, VST3, application<br>Windows: VST3, application<br>Linux: VST3, LV2, application</p>
 <p><b>&#9675; Output</b><br>Stereo</p>
-<p><b>&#9675; Version</b><br>{VERSION}, built with JUCE 8.0.9<br>Plug-in IDs: manufacturer Tcro, plug-in U808 (AU type aumu)</p>
-<p><b>&#9675; Contact</b><br>ticcoross@gmail.com<br>ticcoross.gumroad.com</p></div>'''), "ADVANCED COURSE", True)
+<p><b>&#9675; Version</b><br>{VERSION}, built with JUCE 8.0.9<br>Plug-in IDs: manufacturer Trlb, plug-in U808 (AU type aumu)</p>
+<p><b>&#9675; Maker</b><br>Transistor Labs</p>
+<p><b>&#9675; Contact</b><br>ticcoross@gmail.com<br>ticcoross.gumroad.com</p></div>''')
+        + topic("System Requirements", '''<div class="cols3">
+<p><b>&#9675; macOS</b><br>macOS 10.13 or later, Apple silicon or Intel (universal). AU or VST3 host, or the standalone application.</p>
+<p><b>&#9675; Windows</b><br>Windows 10 or 11, 64-bit. VST3 host, or the standalone application.</p>
+<p><b>&#9675; Linux</b><br>64-bit x86 with a VST3 or LV2 host, or the standalone application (JACK or ALSA).</p>
+<p><b>&#9675; Computer</b><br>Any recent CPU: UNIT808 uses about 4% of one core at 48 kHz. 4 GB RAM. A screen of 1280 &times; 800 or larger.</p></div>'''), "ADVANCED COURSE", True)
 
     back(d, "Operation Manual")
     d.page(f'<img class="endbrand" src="{BRAND}">', cls="end")
@@ -530,6 +537,12 @@ the contact address, the Ticco Ross store, and a button that opens this manual. 
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("1.0.0", "", [
+        "First release under the Transistor Labs name: new front panel logo, About window, manual and installers",
+        "UNIT808 is now a new plug-in with its own Transistor Labs maker code. Songs saved with 0.4.x do not find it automatically: load UNIT808 1.0 again in those songs",
+        "New vintage trimmers inside the box: only the screwdriver slot turns",
+        "Mute and solo swapped: Shift-click a label mutes, Option/Alt-click solos",
+    ]),
     ("0.4.3", "", [
         "Inside the box: the 16 STEP keys work like the panel ones, with live LEDs and the 1st / 2nd PART lights",
         "Inside the box: the black POWER switch, the power supply or Esc closes the board",

@@ -14,7 +14,7 @@ VERSION=$(sed -nE 's/^project\(UNIT808 VERSION ([0-9.]+)\).*/\1/p' CMakeLists.tx
 ART="build/UNIT808_artefacts/Release"
 OUT="dist"
 WORK="$OUT/work"
-ID="com.ticcoross.unit808"
+ID="com.transistorlabs.unit808"
 DEV_ID_APP="${DEV_ID_APP:-}"
 DEV_ID_INSTALLER="${DEV_ID_INSTALLER:-}"
 NOTARY_PROFILE="${NOTARY_PROFILE:-}"
@@ -65,7 +65,7 @@ stage app  "$ART/Standalone/UNIT808.app" "/Applications"
 cat > "$WORK/resources/welcome.html" <<EOF
 <html><body style="font-family:-apple-system,Helvetica;font-size:13px">
 <h2>UNIT808 $VERSION</h2>
-<p>808-style Rhythm Composer &middot; Ticco Ross 2026</p>
+<p>808-style Rhythm Composer &middot; Transistor Labs 2026</p>
 <p>This installs the Audio Unit, the VST3 plug-in and the standalone app.
 Click <b>Customize</b> on the next screen to skip any of them.</p>
 <p>After installing, rescan plug-ins in your DAW
@@ -77,7 +77,7 @@ cat > "$WORK/distribution.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
     <title>UNIT808 $VERSION</title>
-    <organization>com.ticcoross</organization>
+    <organization>com.transistorlabs</organization>
     <welcome file="welcome.html" mime-type="text/html"/>
     <options customize="allow" require-scripts="false" hostArchitectures="arm64,x86_64"/>
     <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>

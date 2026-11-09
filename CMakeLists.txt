@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(UNIT808 VERSION 0.4.3)
+project(UNIT808 VERSION 1.0.0)
 string(TIMESTAMP U808_BUILD_DATE "%d %b %Y" UTC)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -30,13 +30,13 @@ endif()
 option(U808_COPY_PLUGINS "Copy plug-ins to the plug-in folders after building" ON)
 
 juce_add_plugin(UNIT808
-    COMPANY_NAME "Ticco Ross"
-    PLUGIN_MANUFACTURER_CODE Tcro
+    COMPANY_NAME "Transistor Labs"
+    PLUGIN_MANUFACTURER_CODE Trlb
     PLUGIN_CODE U808
     FORMATS ${U808_FORMATS}
-    LV2URI "urn:ticcoross:unit808"
+    LV2URI "urn:transistorlabs:unit808"
     PRODUCT_NAME "UNIT808"
-    BUNDLE_ID com.ticcoross.unit808
+    BUNDLE_ID com.transistorlabs.unit808
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE

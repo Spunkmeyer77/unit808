@@ -1,4 +1,4 @@
-// UNIT808 sound engine v0.2 — Ticco Ross. Port of the UNIT 808 M4L gen~ engine.
+// UNIT808 sound engine v0.2 — Transistor Labs. Port of the UNIT 808 M4L gen~ engine.
 // Each tick*() is a line-for-line translation of the matching codebox; History
 // variables become struct members (codebox semantics: assignments take effect at once).
 #include "Tr808Engine.h"

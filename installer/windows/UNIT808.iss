@@ -9,13 +9,13 @@
 #define Artefacts "..\..\build\UNIT808_artefacts\Release"
 
 [Setup]
-AppId={{4F3A8D21-7C5B-4E8A-9B16-0808D1C0A808}
+AppId={{9C2E7B14-3A6F-4D1E-8B5A-1A0B808C0001}
 AppName=UNIT808
 AppVersion={#AppVersion}
 AppVerName=UNIT808 {#AppVersion}
-AppPublisher=Ticco Ross
-DefaultDirName={autopf}\Ticco Ross\UNIT808
-DefaultGroupName=Ticco Ross
+AppPublisher=Transistor Labs
+DefaultDirName={autopf}\Transistor Labs\UNIT808
+DefaultGroupName=Transistor Labs
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 OutputDir=..\..\dist

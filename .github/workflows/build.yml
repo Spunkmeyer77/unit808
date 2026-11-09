@@ -79,7 +79,7 @@ jobs:
           mkdir -p ~/Library/Audio/Plug-Ins/Components
           cp -R "build/UNIT808_artefacts/Release/AU/UNIT808.component" ~/Library/Audio/Plug-Ins/Components/
           killall -9 AudioComponentRegistrar 2>/dev/null || true
-          auval -v aumu U808 Tcro
+          auval -v aumu U808 Trlb
 
       # ---- packaging ---------------------------------------------------------------------
       - name: Package (macOS)

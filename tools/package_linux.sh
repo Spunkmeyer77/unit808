@@ -35,7 +35,7 @@ EOS
 chmod +x "$STAGE/install.sh" "$STAGE/uninstall.sh"
 
 cat > "$STAGE/README.txt" <<EOS
-UNIT808 $VERSION - 808-style Rhythm Composer - Ticco Ross 2026
+UNIT808 $VERSION - 808-style Rhythm Composer - Transistor Labs 2026
 
 Install:    ./install.sh      (VST3 -> ~/.vst3, LV2 -> ~/.lv2, app -> ~/.local/bin/UNIT808)
 Uninstall:  ./uninstall.sh

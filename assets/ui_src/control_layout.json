@@ -1458,10 +1458,10 @@
       "id": "about",
       "type": "button",
       "hotspot": true,
-      "x": 1247.44,
-      "y": 93.68,
-      "width": 458.7,
-      "height": 61.38
+      "x": 1215.0,
+      "y": 85.0,
+      "width": 525.0,
+      "height": 80.0
     }
   ],
   "notes": [

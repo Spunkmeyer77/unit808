@@ -1,7 +1,7 @@
 # UNIT808
 
-**UNIT808 Rhythm Composer** by Ticco Ross: an 808-style drum machine plug-in (AU / VST3 / LV2 / Standalone) for
-macOS, Windows and Linux. The sound engine is the one in the Ticco Ross UNIT 808 Max for Live device, ported to C++
+**UNIT808 Rhythm Composer** by Transistor Labs: an 808-style drum machine plug-in (AU / VST3 / LV2 / Standalone) for
+macOS, Windows and Linux. The sound engine is the one in the UNIT 808 Max for Live device, ported to C++
 (all sounds synthesized, no samples), behind a hardware-style panel and an 808-style sequencer.
 
 ## Using it
@@ -19,7 +19,7 @@ macOS, Windows and Linux. The sound engine is the one in the Ticco Ross UNIT 808
 | SWING / FINE SWING | Delay every second step (tempo always follows the DAW) |
 | START/STOP | Shows the DAW transport (standalone: starts/stops, right-click for tempo) |
 | Sound knobs and switches | Levels, tone, tuning, snappy, decay; tom/conga, rim shot/claves, clap/maracas |
-| Ticco Ross logo | About window, contact, store, built-in manual |
+| Transistor Labs logo | About window, contact, store, built-in manual |
 
 MIDI notes (General MIDI drum map) play the sounds. Everything is saved with your project; every control can be
 automated and MIDI-mapped.

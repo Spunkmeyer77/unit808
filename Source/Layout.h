@@ -120,6 +120,6 @@ constexpr Ctrl kCtrls[kNumCtrls] = {
     { "step-16-led", "led", 0.0f, 0.0f, 0.0f, 1542.0f, 917.0f, 14.0f, 14.0f, 0, { { "step_16_led_off_png", 1535.0f, 910.0f, 28.0f, 28.0f }, { "step_16_led_on_png", 1535.0f, 910.0f, 28.0f, 28.0f }, { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 } }, 0, { 0 }, 0.0f },
     { "start-stop", "button", 0.0f, 0.0f, 0.0f, 115.0f, 913.0f, 146.0f, 84.0f, 0, { { "start_stop_up_png", 114.0f, 912.0f, 149.0f, 90.0f }, { "start_stop_down_png", 114.0f, 912.0f, 149.0f, 90.0f }, { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 } }, 0, { 0 }, 0.0f },
     { "tap", "button", 0.0f, 0.0f, 0.0f, 1670.0f, 917.0f, 80.0f, 86.0f, 0, { { "tap_up_png", 1669.0f, 916.0f, 83.0f, 92.0f }, { "tap_down_png", 1669.0f, 916.0f, 83.0f, 92.0f }, { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 } }, 0, { 0 }, 0.0f },
-    { "about", "button", 0.0f, 0.0f, 0.0f, 1247.44f, 93.68f, 458.7f, 61.38f, 0, { { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 } }, 0, { 0 }, 0.0f },
+    { "about", "button", 0.0f, 0.0f, 0.0f, 1215.0f, 85.0f, 525.0f, 80.0f, 0, { { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 }, { nullptr, 0, 0, 0, 0 } }, 0, { 0 }, 0.0f },
 };
 } // namespace unit808ui

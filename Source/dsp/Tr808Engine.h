@@ -1,4 +1,4 @@
-// UNIT808 sound engine v0.2 — Ticco Ross
+// UNIT808 sound engine v0.2 — Transistor Labs
 // C++ port of the UNIT 808 Max for Live device engine (gen~ codeboxes), sample-for-sample,
 // so the plugin sounds the same as the device. Framework-independent.
 #pragma once

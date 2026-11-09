@@ -245,34 +245,25 @@ TrimmerLookAndFeel::TrimmerLookAndFeel()
     setColour (juce::TooltipWindow::textColourId, juce::Colours::white);
 }
 
+static juce::Image res (const char* name)
+{
+    int size = 0;
+    if (auto* d = BinaryData::getNamedResource (name, size)) return juce::ImageCache::getFromMemory (d, size);
+    return {};
+}
+
 void TrimmerLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, int h, float pos, float start, float end, juce::Slider&)
 {
-    const auto area = juce::Rectangle<int> (x, y, w, h).toFloat();
-    const auto c = area.getCentre();
-    const float s = juce::jmin (area.getWidth(), area.getHeight());
-    auto body = juce::Rectangle<float> (s * 0.82f, s * 0.82f).withCentre (c);
-    g.setColour (juce::Colours::black.withAlpha (0.45f));
-    g.fillRoundedRectangle (body.translated (s * 0.05f, s * 0.07f), 2.0f);
-    g.setGradientFill (juce::ColourGradient (juce::Colour (0xff4f7fc2), body.getX(), body.getY(), juce::Colour (0xff1d3b6b), body.getRight(), body.getBottom(), false));
-    g.fillRoundedRectangle (body, 2.0f);
-    g.setColour (juce::Colour (0xff0f1d33));
-    g.drawRoundedRectangle (body, 2.0f, 1.0f);
-    g.setColour (juce::Colours::white.withAlpha (0.35f));
-    g.drawLine (body.getX() + 2, body.getY() + 1.2f, body.getRight() - 2, body.getY() + 1.2f, 1.0f);
-    const float r = s * 0.3f;
-    juce::ColourGradient rotor (juce::Colour (0xfffbf0c8), c.x - r * 0.5f, c.y - r * 0.6f, juce::Colour (0xff8a6a26), c.x + r, c.y + r, true);
-    rotor.addColour (0.45, juce::Colour (0xffd8b866));
-    g.setGradientFill (rotor);
-    g.fillEllipse (juce::Rectangle<float> (r * 2, r * 2).withCentre (c));
-    g.setColour (juce::Colour (0xff4a3810));
-    g.drawEllipse (juce::Rectangle<float> (r * 2, r * 2).withCentre (c), 1.0f);
+    // vintage PCB trimmer: the body and the brass shine stay still, only the screwdriver slot turns
+    static const juce::Image body = res ("trimmer_body_png"), face = res ("trimmer_face_png"), slot = res ("trimmer_slot_png");
+    const float s = (float) juce::jmin (w, h);
+    const auto r = juce::Rectangle<float> (s, s).withCentre (juce::Rectangle<int> (x, y, w, h).toFloat().getCentre());
+    g.setImageResamplingQuality (juce::Graphics::highResamplingQuality);
+    g.drawImage (body, r, juce::RectanglePlacement::stretchToFit);
+    g.drawImage (face, r, juce::RectanglePlacement::stretchToFit);
     const float a = start + pos * (end - start);
-    juce::Path slot;
-    slot.addRoundedRectangle (-r * 0.85f, -r * 0.13f, r * 1.7f, r * 0.26f, r * 0.1f);
-    g.setColour (juce::Colour (0xff2a1e08));
-    g.fillPath (slot, juce::AffineTransform::rotation (a - juce::MathConstants<float>::halfPi).translated (c));
-    g.setColour (juce::Colours::white.withAlpha (0.85f));
-    g.fillEllipse (juce::Rectangle<float> (r * 0.3f, r * 0.3f).withCentre (c.getPointOnCircumference (r * 0.62f, a)));
+    const float k = s / (float) juce::jmax (1, slot.getWidth());
+    g.drawImageTransformed (slot, juce::AffineTransform::scale (k).translated (r.getX(), r.getY()).rotated (a, r.getCentreX(), r.getCentreY()));
 }
 
 void TrimmerLookAndFeel::drawBubble (juce::Graphics& g, juce::BubbleComponent&, const juce::Point<float>&, const juce::Rectangle<float>& body)
@@ -500,7 +491,7 @@ void AboutOverlay::paint (juce::Graphics& g)
     line ("STORE", {}, c.getY() + 420.0f);
     g.setColour (juce::Colour (0xff9fa29a));
     g.setFont (font (15.0f));
-    g.drawText (juce::String (juce::CharPointer_UTF8 ("Ticco Ross \xc2\xb7 \xc2\xa9 2026 \xc2\xb7 Made with JUCE. VST is a trademark of Steinberg Media Technologies GmbH. "
+    g.drawText (juce::String (juce::CharPointer_UTF8 ("Transistor Labs \xc2\xb7 \xc2\xa9 2026 \xc2\xb7 Made with JUCE. VST is a trademark of Steinberg Media Technologies GmbH. "
                                                       "Audio Units is a trademark of Apple Inc.")),
                 juce::Rectangle<float> (x0, c.getBottom() - 46.0f, 640.0f, 26.0f), juce::Justification::centredLeft, true);
     g.drawText ("CLICK ANYWHERE TO CLOSE", juce::Rectangle<float> (x0, c.getBottom() - 84.0f, 400.0f, 26.0f), juce::Justification::centredLeft);
@@ -1110,8 +1101,8 @@ void Unit808Editor::instrumentLabelClick (int inst, juce::ModifierKeys m)
                             });
         return;
     }
-    if (m.isShiftDown()) { if (inst > 0) toggleParam (Unit808Processor::soloId (inst)); }
-    else if (m.isAltDown()) toggleParam (Unit808Processor::muteId (inst));
+    if (m.isShiftDown()) toggleParam (Unit808Processor::muteId (inst));
+    else if (m.isAltDown()) { if (inst > 0) toggleParam (Unit808Processor::soloId (inst)); }
 }
 
 void Unit808Editor::stepKeyPress (int s, juce::ModifierKeys m)

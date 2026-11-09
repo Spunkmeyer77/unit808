@@ -19,7 +19,7 @@ def viewbox(svg):
     m = re.search(r'viewBox="([^"]+)"', svg)
     return [float(v) for v in m.group(1).replace(",", " ").split()]
 
-jobs = [("faceplate", (SRC / "TR808_faceplate.svg").read_text()), ("brand", (SRC / "brand.svg").read_text())]
+jobs = [("faceplate", (SRC / "TR808_faceplate.svg").read_text()), ("brand", (SRC / "brand.svg").read_text())] + [(n, (SRC / f"{n}.svg").read_text()) for n in ("trimmer_body", "trimmer_face", "trimmer_slot")]
 for f in sorted((SRC / "assets").glob("*.svg")):
     jobs.append((f.stem, f.read_text()))
 

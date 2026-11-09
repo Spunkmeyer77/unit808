@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.22)
+# must come before project(): otherwise the macOS build targets the build machine's own macOS version
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version")
 
-project(UNIT808 VERSION 1.0.0)
+project(UNIT808 VERSION 1.0.1)
 string(TIMESTAMP U808_BUILD_DATE "%d %b %Y" UTC)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version")
 
 # JUCE: use a local checkout if -DJUCE_DIR=... is given, otherwise download it
 if(DEFINED JUCE_DIR)

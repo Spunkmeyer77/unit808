@@ -537,6 +537,9 @@ the contact address, the Transistor Labs store, and a button that opens this man
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
+    ("1.0.1", "", [
+        "Fixed: 1.0.0 would not open on older macOS versions (it was built for macOS 15 only). UNIT808 runs again on macOS 10.13 and later",
+    ]),
     ("1.0.0", "", [
         "First release under the Transistor Labs name: new front panel logo, About window, manual and installers",
         "UNIT808 is now a new plug-in with its own Transistor Labs maker code. Songs saved with 0.4.x do not find it automatically: load UNIT808 1.0 again in those songs",

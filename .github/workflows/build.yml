@@ -23,7 +23,7 @@ jobs:
         include:
           - name: macOS
             os: macos-15
-            configure: -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+            configure: -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
           - name: Windows
             os: windows-2022
             configure: ""
@@ -72,9 +72,19 @@ jobs:
           mkdir -p test-out
           xvfb-run -a build/UNIT808Test_artefacts/Release/UNIT808Test test-out
 
+      - name: Check minimum macOS version (must run on old macOS)
+        if: runner.os == 'macOS'
+        run: |
+          for b in build/UNIT808_artefacts/Release/AU/UNIT808.component/Contents/MacOS/UNIT808 build/UNIT808_artefacts/Release/VST3/UNIT808.vst3/Contents/MacOS/UNIT808 build/UNIT808_artefacts/Release/Standalone/UNIT808.app/Contents/MacOS/UNIT808; do
+            for a in arm64 x86_64; do
+              m=$(vtool -arch $a -show-build "$b" | awk '/minos/{print $2}')
+              echo "$b ($a): minos $m"
+              [ "$(printf '%s\n' "$m" 11.0 | sort -V | head -1)" = "$m" ] || { echo "::error::$b needs macOS $m - too new"; exit 1; }
+            done
+          done
+
       - name: Validate Audio Unit (macOS)
         if: runner.os == 'macOS'
-        continue-on-error: true
         run: |
           mkdir -p ~/Library/Audio/Plug-Ins/Components
           cp -R "build/UNIT808_artefacts/Release/AU/UNIT808.component" ~/Library/Audio/Plug-Ins/Components/

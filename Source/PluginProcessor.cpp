@@ -5,19 +5,19 @@ using namespace unit808;
 
 namespace
 {
-// panel knobs: id, name, default (0..1, the UNIT 808 device's defaults); shown 0..10 like the hardware
+// panel knobs: id, name, default (0..1, the Transistor 808 panel's); shown 0..10 like the hardware
 struct KnobDef { const char* id; const char* name; float def; };
 const KnobDef kKnobs[23] = {
-    { "ac-level", "Accent", 0.6f },
-    { "bd-level", "BD Level", 0.5f }, { "bd-tone", "BD Tone", 0.5f }, { "bd-decay", "BD Decay", 0.32f },
-    { "sd-level", "SD Level", 0.3f }, { "sd-tone", "SD Tone", 1.0f }, { "sd-snappy", "SD Snappy", 0.6f },
-    { "lt-level", "LT/LC Level", 0.45f }, { "lt-tuning", "LT/LC Tuning", 0.386f },
-    { "mt-level", "MT/MC Level", 0.42f }, { "mt-tuning", "MT/MC Tuning", 0.32f },
-    { "ht-level", "HT/HC Level", 0.40f }, { "ht-tuning", "HT/HC Tuning", 0.314f },
-    { "rs-level", "RS/CL Level", 0.46f }, { "cp-level", "CP/MA Level", 0.70f }, { "cb-level", "CB Level", 0.35f },
-    { "cy-level", "CY Level", 0.60f }, { "cy-tone", "CY Tone", 0.4f }, { "cy-decay", "CY Decay", 0.577f },
-    { "oh-level", "OH Level", 0.45f }, { "oh-decay", "OH Decay", 0.559f }, { "ch-level", "CH Level", 0.45f },
-    { "master-volume", "Master Volume", 0.8f } };
+    { "ac-level", "Accent", 0.5f },
+    { "bd-level", "BD Level", 0.8f }, { "bd-tone", "BD Tone", 0.5f }, { "bd-decay", "BD Decay", 0.5f },
+    { "sd-level", "SD Level", 0.8f }, { "sd-tone", "SD Tone", 0.5f }, { "sd-snappy", "SD Snappy", 0.5f },
+    { "lt-level", "LT/LC Level", 0.8f }, { "lt-tuning", "LT/LC Tuning", 0.5f },
+    { "mt-level", "MT/MC Level", 0.8f }, { "mt-tuning", "MT/MC Tuning", 0.5f },
+    { "ht-level", "HT/HC Level", 0.8f }, { "ht-tuning", "HT/HC Tuning", 0.5f },
+    { "rs-level", "RS/CL Level", 0.8f }, { "cp-level", "CP/MA Level", 0.8f }, { "cb-level", "CB Level", 0.8f },
+    { "cy-level", "CY Level", 0.8f }, { "cy-tone", "CY Tone", 0.5f }, { "cy-decay", "CY Decay", 0.5f },
+    { "oh-level", "OH Level", 0.8f }, { "oh-decay", "OH Decay", 0.5f }, { "ch-level", "CH Level", 0.8f },
+    { "master-volume", "Master Volume", 0.7f } };
 const char* const kSwitchIds[5]   = { "lt-select", "mt-select", "ht-select", "rs-select", "cp-select" };
 const char* const kSwitchNames[5] = { "LT/LC Select", "MT/MC Select", "HT/HC Select", "RS/CL Select", "CP/MA Select" };
 
@@ -30,21 +30,14 @@ juce::String tenths (float v, int) { return juce::String (v * 10.0f, 1); }
 
 // The board inside: the UNIT 808 device's controls that are not on the front panel, in its own ranges.
 // skew 0.5 = the device's exponent 2 dials. Defaults = the device's defaults (the sound of v0.3).
+// The board inside: the 14 calibration trimmers of the Transistor 808 circuit engine (dsp/CircuitEngine),
+// in their own units; the factory values are the modelled unit's. Each one acts live.
 const Unit808Processor::TrimDef Unit808Processor::kTrims[kNumTrims] = {
-    { "bd-tune", "BD Tune", 40, 65, 49.4f, 1, "Hz" }, { "bd-click", "BD Click", 0, 1, 0.01f, 1, "" }, { "bd-drive", "BD Drive", 1, 6, 1, 1, "" },
-    { "sd-tune", "SD Tune", 0.8f, 1.25f, 1, 1, "x" }, { "sd-decay", "SD Decay", 0.5f, 2, 0.73f, 1, "x" },
-    { "lt-tom-decay", "LT Tom Decay", 20, 400, 95, 0.5f, "ms" }, { "lt-tom-bend", "LT Tom Bend", 0, 0.5f, 0.03f, 1, "" },
-    { "lt-conga-decay", "LC Conga Decay", 20, 400, 86, 0.5f, "ms" }, { "lt-conga-bend", "LC Conga Bend", 0, 0.5f, 0.03f, 1, "" },
-    { "mt-tom-decay", "MT Tom Decay", 20, 400, 70, 0.5f, "ms" }, { "mt-tom-bend", "MT Tom Bend", 0, 0.5f, 0.03f, 1, "" },
-    { "mt-conga-decay", "MC Conga Decay", 20, 400, 44, 0.5f, "ms" }, { "mt-conga-bend", "MC Conga Bend", 0, 0.5f, 0.03f, 1, "" },
-    { "ht-tom-decay", "HT Tom Decay", 20, 400, 48, 0.5f, "ms" }, { "ht-tom-bend", "HT Tom Bend", 0, 0.5f, 0.03f, 1, "" },
-    { "ht-conga-decay", "HC Conga Decay", 20, 400, 38, 0.5f, "ms" }, { "ht-conga-bend", "HC Conga Bend", 0, 0.5f, 0.03f, 1, "" },
-    { "rs-tune", "RS Tune", 0.7f, 1.4f, 1, 1, "x" }, { "rs-decay", "RS Decay", 0.5f, 3, 1, 1, "x" },
-    { "cl-tune", "CL Tune", 0.7f, 1.4f, 1, 1, "x" }, { "cl-decay", "CL Decay", 0.5f, 3, 1, 1, "x" },
-    { "cp-tone", "CP Tone", 600, 5000, 1300, 1, "Hz" }, { "cp-decay", "CP Decay", 10, 300, 60, 0.5f, "ms" },
-    { "cb-tune", "CB Tune", 0.5f, 2, 1, 1, "x" }, { "cb-decay", "CB Decay", 50, 1200, 97, 1, "ms" },
-    { "cy-tune", "CY Tune", 0.5f, 2, 1, 1, "x" },
-    { "hh-tune", "HH Tune", 0.5f, 2, 1, 1, "x" }, { "hh-tone", "HH Tone", 0.6f, 1.6f, 1, 1, "x" }, { "ch-decay", "CH Decay", 5, 100, 24, 1, "ms" } };
+#define U808_CAL(i) { unit808::kCal[i].id, unit808::kCal[i].name, unit808::kCal[i].lo, unit808::kCal[i].hi, unit808::kCal[i].def, 1.0f, unit808::kCal[i].unit }
+    U808_CAL (0), U808_CAL (1), U808_CAL (2), U808_CAL (3), U808_CAL (4), U808_CAL (5), U808_CAL (6),
+    U808_CAL (7), U808_CAL (8), U808_CAL (9), U808_CAL (10), U808_CAL (11), U808_CAL (12), U808_CAL (13)
+#undef U808_CAL
+};
 
 const char* const Unit808Processor::kInstrumentNames[kNumRows] = { "AC", "BD", "SD", "LT", "MT", "HT", "RS", "CP", "CB", "CY", "OH", "CH" };
 
@@ -79,17 +72,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout Unit808Processor::createLayo
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "basic-variation", 1 }, "Basic Variation", juce::StringArray { "A", "AB", "B" }, 0));
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "if-variation", 1 }, "I/F Variation", juce::StringArray { "A", "B" }, 0));
     l.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "pre-scale", 1 }, "Pre-Scale", juce::StringArray { "1", "2", "3", "4" }, 2));
-    for (auto& t : kTrims)
+    for (int i = 0; i < kNumTrims; ++i)
     {
-        juce::NormalisableRange<float> r (t.lo, t.hi);
-        r.skew = t.skew;
+        const auto& t = kTrims[i];
         const juce::String unit = t.unit;
-        l.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { juce::String ("t-") + t.pad, 1 }, juce::String ("Trim ") + t.name, r, t.def,
-            juce::AudioParameterFloatAttributes().withStringFromValueFunction ([unit] (float v, int)
+        const bool revision = (i == unit808::LateClap || i == unit808::LateSnare);
+        juce::NormalisableRange<float> r (t.lo, t.hi, revision ? 1.0f : 0.0f);
+        l.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { trimId (i), 1 }, juce::String ("Cal ") + t.name, r, t.def,
+            juce::AudioParameterFloatAttributes().withStringFromValueFunction ([unit, revision] (float v, int)
             {
-                if (unit == "x")  return juce::String (v, 2) + " x";
-                if (unit == "ms") return juce::String (juce::roundToInt (v)) + " ms";
-                if (unit == "Hz") return juce::String (v, v < 100 ? 1 : 0) + " Hz";
+                if (revision)      return juce::String (v >= 0.5f ? "Late" : "Early");
+                if (unit == "Hz")  return juce::String (v, 2) + " Hz";
+                if (unit == "%")   return juce::String (v, 1) + " %";
+                if (unit == "mV")  return juce::String (juce::roundToInt (v)) + " mV RMS";
+                if (unit == "kOhm") return juce::String (juce::roundToInt (v)) + " kOhm";
+                if (unit == "ms")  return juce::String (v, 2) + " ms";
+                if (unit == "st")  return (v > 0.005f ? "+" : "") + juce::String (v, 2) + " st";
                 return juce::String (v, 2);
             })));
     }
@@ -136,27 +134,24 @@ void Unit808Processor::prepareToPlay (double sr, int)
 
 void Unit808Processor::pullParams()
 {
-    auto k = [this] (int i) { return raw.knob[i]->load(); };
+    auto k = [this] (int i) { return (double) raw.knob[i]->load(); };
     auto s = [this] (int i) { return raw.sw[i]->load() > 0.5f; };
-    Params& P = sound;
-    P.accent = k (0);
-    P.bdLevel = k (1); P.bdTone = k (2); P.bdDecay = k (3);
-    P.sdLevel = k (4); P.sdTone = k (5); P.sdSnappy = k (6);
-    P.ltLevel = k (7); P.ltTuning = k (8); P.mtLevel = k (9); P.mtTuning = k (10); P.htLevel = k (11); P.htTuning = k (12);
-    P.rsLevel = k (13); P.cpLevel = k (14); P.cbLevel = k (15);
-    P.cyLevel = k (16); P.cyTone = k (17); P.cyDecay = k (18);
-    P.ohLevel = k (19); P.ohDecay = k (20); P.chLevel = k (21); P.master = k (22);
-    auto t = [this] (int i) { return raw.trim[i]->load(); };
-    P.bdTune = t (0); P.bdClick = t (1); P.bdDrive = t (2); P.sdTune = t (3); P.sdDecay = t (4);
-    for (int d = 0; d < 3; ++d)
-    {
-        P.tomDecay[d] = t (5 + d * 4); P.tomBend[d] = t (6 + d * 4); P.congaDecay[d] = t (7 + d * 4); P.congaBend[d] = t (8 + d * 4);
-    }
-    P.rsTune = t (17); P.rsDecay = t (18); P.clTune = t (19); P.clDecay = t (20);
-    P.cpTone = t (21); P.cpDecay = t (22); P.cbTune = t (23); P.cbDecay = t (24); P.cyTune = t (25);
-    P.hhTune = t (26); P.hhTone = t (27); P.chDecay = t (28);
-    P.ltConga = s (0); P.mtConga = s (1); P.htConga = s (2); P.rsClaves = s (3); P.cpMaracas = s (4);
-    engine.setParams (P);
+    auto& c = sound.panel;
+    c.accent = k (0);
+    c.bdLevel = k (1); c.bdTone = k (2); c.bdDecay = k (3);
+    c.sdLevel = k (4); c.sdTone = k (5); c.sdSnappy = k (6);
+    c.ltLevel = k (7); c.ltTuning = k (8); c.mtLevel = k (9); c.mtTuning = k (10); c.htLevel = k (11); c.htTuning = k (12);
+    c.rsLevel = k (13); c.cpLevel = k (14); c.cbLevel = k (15);
+    c.cyLevel = k (16); c.cyTone = k (17); c.cyDecay = k (18);
+    c.ohLevel = k (19); c.ohDecay = k (20); c.chLevel = k (21); c.volume = k (22);
+    c.lc = s (0); c.mc = s (1); c.hc = s (2); c.cl = s (3); c.ma = s (4);
+    for (int i = 0; i < kNumTrims; ++i) sound.cal[(size_t) i] = raw.trim[i]->load();
+    engine.setParams (sound);
+}
+
+void Unit808Processor::audioWorkgroupContextChanged (const juce::AudioWorkgroup& wg)
+{
+    engine.setWorkgroup (wg);
 }
 
 // ---- panel actions -------------------------------------------------------------------------------

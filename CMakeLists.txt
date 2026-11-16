@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 # must come before project(): otherwise the macOS build targets the build machine's own macOS version
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version")
 
-project(UNIT808 VERSION 1.0.2)
+project(UNIT808 VERSION 1.1.0)
 string(TIMESTAMP U808_BUILD_DATE "%d %b %Y" UTC)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -47,11 +47,15 @@ juce_add_plugin(UNIT808
     VST3_CATEGORIES Instrument Drum
     COPY_PLUGIN_AFTER_BUILD ${U808_COPY_PLUGINS})
 
+# the Transistor 808 circuit engine (engine/, GNU AGPLv3): every voice simulated from the schematics
+set(TR808_ENGINE_TOOLS OFF CACHE BOOL "" FORCE)
+add_subdirectory(engine)
+
 # panel artwork (rendered by tools/rasterise_ui.py) and the manual (opened from the About window)
 file(GLOB U808_UI_PNGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/assets/ui/*.png" "${CMAKE_CURRENT_SOURCE_DIR}/assets/ui/*.jpg")
 juce_add_binary_data(UNIT808Data SOURCES "docs/UNIT808 Manual.pdf" ${U808_UI_PNGS})
 
-set(U808_SOURCES Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/dsp/Tr808Engine.cpp)
+set(U808_SOURCES Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/dsp/CircuitEngine.cpp)
 target_sources(UNIT808 PRIVATE ${U808_SOURCES})
 
 target_compile_definitions(UNIT808 PUBLIC
@@ -64,6 +68,7 @@ target_compile_definitions(UNIT808 PUBLIC
 target_link_libraries(UNIT808
     PRIVATE
         UNIT808Data
+        tr808_voice_engine
         juce::juce_audio_utils
     PUBLIC
         juce::juce_recommended_config_flags
@@ -78,5 +83,5 @@ if(U808_BUILD_TESTS)
     target_compile_definitions(UNIT808Test PRIVATE
         JucePlugin_Name="UNIT808" JucePlugin_VersionString="${PROJECT_VERSION}" JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0
         _USE_MATH_DEFINES U808_BUILD_DATE="${U808_BUILD_DATE}")
-    target_link_libraries(UNIT808Test PRIVATE UNIT808Data juce::juce_audio_utils juce::juce_recommended_config_flags)
+    target_link_libraries(UNIT808Test PRIVATE UNIT808Data tr808_voice_engine juce::juce_audio_utils juce::juce_recommended_config_flags)
 endif()

@@ -8,37 +8,22 @@ constexpr Art kFaceplate = { "faceplate_png", 0.0f, 0.0f, 1870.0f, 1090.0f };
 constexpr Art kBrand = { "brand_png", 1290.0f, 92.0f, 499.0f, 109.0f };
 constexpr Art kBoard = { "board_jpg", 0.0f, 0.0f, 1870.0f, 1090.0f };
 struct Pad { const char* id; const char* label; float cx, cy, size; };   // trimmer pads on the board inside
-constexpr int kNumPads = 29;
+constexpr int kNumPads = 14;
 constexpr Pad kPads[kNumPads] = {
-    { "bd-tune", "TUNE", 497.0f, 494.0f, 38.0f },
-    { "bd-click", "CLICK", 555.0f, 494.0f, 38.0f },
-    { "bd-drive", "DRIVE", 613.0f, 494.0f, 38.0f },
-    { "sd-tune", "TUNE", 689.5f, 494.0f, 38.0f },
-    { "sd-decay", "DECAY", 747.5f, 494.0f, 38.0f },
-    { "lt-tom-decay", "TOM DECAY", 824.0f, 494.0f, 38.0f },
-    { "lt-tom-bend", "TOM BEND", 882.0f, 494.0f, 38.0f },
-    { "lt-conga-decay", "CONGA DECAY", 940.0f, 494.0f, 38.0f },
-    { "lt-conga-bend", "CONGA BEND", 998.0f, 494.0f, 38.0f },
-    { "mt-tom-decay", "TOM DECAY", 1074.5f, 494.0f, 38.0f },
-    { "mt-tom-bend", "TOM BEND", 1132.5f, 494.0f, 38.0f },
-    { "mt-conga-decay", "CONGA DECAY", 1190.5f, 494.0f, 38.0f },
-    { "mt-conga-bend", "CONGA BEND", 1248.5f, 494.0f, 38.0f },
-    { "ht-tom-decay", "TOM DECAY", 1325.0f, 494.0f, 38.0f },
-    { "ht-tom-bend", "TOM BEND", 1383.0f, 494.0f, 38.0f },
-    { "ht-conga-decay", "CONGA DECAY", 1441.0f, 494.0f, 38.0f },
-    { "ht-conga-bend", "CONGA BEND", 1499.0f, 494.0f, 38.0f },
-    { "rs-tune", "RS TUNE", 509.0f, 648.0f, 38.0f },
-    { "rs-decay", "RS DECAY", 583.0f, 648.0f, 38.0f },
-    { "cl-tune", "CL TUNE", 657.0f, 648.0f, 38.0f },
-    { "cl-decay", "CL DECAY", 731.0f, 648.0f, 38.0f },
-    { "cp-tone", "TONE", 846.0f, 648.0f, 38.0f },
-    { "cp-decay", "DECAY", 920.0f, 648.0f, 38.0f },
-    { "cb-tune", "TUNE", 1035.0f, 648.0f, 38.0f },
-    { "cb-decay", "DECAY", 1109.0f, 648.0f, 38.0f },
-    { "cy-tune", "TUNE", 1224.0f, 648.0f, 38.0f },
-    { "hh-tune", "TUNE", 1339.0f, 648.0f, 38.0f },
-    { "hh-tone", "TONE", 1413.0f, 648.0f, 38.0f },
-    { "ch-decay", "CH DECAY", 1487.0f, 648.0f, 38.0f },
+    { "bd-tune", "TUNE", 531.0f, 494.0f, 38.0f },
+    { "cb-osc1", "COWBELL\nOSC 1", 700.0f, 494.0f, 38.0f },
+    { "cb-osc2", "COWBELL\nOSC 2", 820.0f, 494.0f, 38.0f },
+    { "metal-osc3", "OSC 3", 940.0f, 494.0f, 38.0f },
+    { "metal-osc4", "OSC 4", 1060.0f, 494.0f, 38.0f },
+    { "metal-osc5", "OSC 5", 1180.0f, 494.0f, 38.0f },
+    { "metal-osc6", "OSC 6", 1300.0f, 494.0f, 38.0f },
+    { "metal-duty", "DUTY", 1420.0f, 494.0f, 38.0f },
+    { "sd-revision", "REVISION\nEARLY / LATE", 551.0f, 648.0f, 38.0f },
+    { "cp-offset", "OFFSET", 740.0f, 648.0f, 38.0f },
+    { "cp-revision", "REVISION\nEARLY / LATE", 860.0f, 648.0f, 38.0f },
+    { "cl-feedback", "FEEDBACK", 1050.0f, 648.0f, 38.0f },
+    { "noise-level", "LEVEL", 1250.0f, 648.0f, 38.0f },
+    { "trig-width", "WIDTH", 1447.0f, 648.0f, 38.0f },
 };
 constexpr float kPlateX = 722.0f, kPlateY = 782.0f, kPlateW = 745.0f, kPlateH = 88.0f;
 struct Ctrl { const char* id; const char* type; float cx, cy, r, x, y, w, h; int positions; Art a[4]; int nDetents; float detents[12]; float defaultAngle; };

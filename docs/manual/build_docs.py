@@ -264,8 +264,8 @@ def manual():
 
     d.page('''<div class="cols3">
 <p>The Transistor Labs UNIT808 is a computer-controlled Rhythm Composer for your computer, modelled on the 1981 classic.
-Its sounds are not sampled: every instrument is a real-time simulation of the original voice circuits,
-transistor by transistor, from the service schematics (the Transistor 808 circuit engine).</p>
+Its sounds are synthesized, not sampled: the same sound engine as the UNIT 808 Max for Live device,
+built from analog-style circuits for every instrument.</p>
 <p>Eleven sound channels play sixteen sounds: Bass Drum, Snare Drum, Low, Mid and Hi Tom or Conga, Rim Shot or Claves,
 Hand Clap or Maracas, Cow Bell, Cymbal, Open Hi-Hat and Closed Hi-Hat, plus ACcent. Each has its own LEVEL control,
 and most have TONE, TUNING, SNAPPY or DECAY controls.</p>
@@ -356,7 +356,7 @@ then write it in 1st PART).</p><h4>PROCEDURE</h4><ol>
            "BASIC COURSE", True)
 
     d.page(topic("Control Descriptions", '<div class="cols3">' +
-        ctl("A", "POWER Switch", "Opens the circuit board inside with its 14 calibration trimmers (see INSIDE THE BOX). UNIT808 keeps playing; the black POWER switch or the power supply inside closes it again.") +
+        ctl("A", "POWER Switch", "Opens the circuit board inside with its 29 trimmers (see INSIDE THE BOX). UNIT808 keeps playing; the black POWER switch or the power supply inside closes it again.") +
         ctl("B", "MODE Selector", "PATTERN CLEAR, 1st PART and 2nd PART (pattern write), MANUAL PLAY, PLAY and COMPOSE.") +
         ctl("C", "INSTRUMENT-SELECT", "The instrument the STEP keys write (AC, BD, SD, LT, MT, HT, RS, CP, CB, CY, OH, CH). In PLAY and COMPOSE: the Rhythm Track 1 &ndash; 12. Its printed labels also mute and solo (see MUTE AND SOLO).") +
         ctl("D", "CLEAR Button", "PATTERN CLEAR mode: clears the rhythm. COMPOSE: clears the track (TRACK CLEAR). 1st/2nd PART: sets the step number (see ADVANCED COURSE).") +
@@ -439,8 +439,8 @@ has an orange frame. Toms and congas share one row, so LOW TOM and LOW CONGA sel
 <tr><td>Open / Closed Hi-Hat</td><td>Level, Decay / Level</td><td>(a closed hi-hat cuts off the open one)</td></tr></table>'''),
         "ADVANCED COURSE", True)
 
-    d.page(topic("Playing from MIDI", '''<p>MIDI notes play the sounds (General MIDI drum map). As on the original, a hit is accented or not:
-notes with velocity 100 or more are accented (ACCENT sets how strongly), softer notes are not.</p><div class="cols3">
+    d.page(topic("Playing from MIDI", '''<p>MIDI notes play the sounds (General MIDI drum map). Velocity works like accent:
+with ACCENT at 0 every note plays at the same level, at 10 the level follows the velocity.</p><div class="cols3">
 <table><tr><th>NOTE</th><th>SOUND</th></tr><tr><td>35, 36</td><td>Bass Drum</td></tr><tr><td>38, 40</td><td>Snare Drum</td></tr>
 <tr><td>41, 43</td><td>Low Tom</td></tr><tr><td>45, 47</td><td>Mid Tom</td></tr><tr><td>48, 50</td><td>Hi Tom</td></tr></table>
 <table><tr><th>NOTE</th><th>SOUND</th></tr><tr><td>37</td><td>Rim Shot</td></tr><tr><td>39</td><td>Hand Clap</td></tr>
@@ -457,44 +457,39 @@ Every control is a plug-in parameter, so you can automate it and map it to a MID
         "ADVANCED COURSE", True)
 
     d.page(topic("How Each Voice Is Modelled", '''<div class="cols2">
-<p>Every sound is worked out while you play: no samples, no recordings. UNIT808 simulates the 808&rsquo;s voice board as
-an electronic circuit, sample by sample: every resistor, capacitor, transistor and op-amp of each instrument, from the
-service schematics, solved like a circuit simulator does and run at twice your sample rate.</p>
+<p>Every sound is synthesized while you play: no samples. The engine is the one in the UNIT 808 Max for Live device,
+built from the 808&rsquo;s circuit ideas.</p>
 <ul>
-<li><b>Common trigger and accent:</b> each step fires the shared 1 ms trigger pulse; accented steps raise its level through
-the accent circuit, so accent changes the attack and tone, not only the volume.</li>
-<li><b>Bass Drum:</b> the bridged-T resonator struck by the trigger, with its pitch sweep, TONE filter and DECAY control.</li>
-<li><b>Snare Drum:</b> two bridged-T resonators and the shared white noise through the SNAPPY VCA.</li>
-<li><b>Toms and Congas:</b> each tom&rsquo;s resonator with its pink-noise branch; the conga switch changes the parts and takes the noise out.</li>
-<li><b>Rim Shot and Claves, Hand Clap and Maracas:</b> their own circuits, switched as on the hardware.</li>
-<li><b>Cow Bell, Cymbal and Hi-Hats:</b> six square-wave oscillators that run all the time; the cow bell uses two of them,
-the cymbal and hats all six through their band-pass filters and VCAs. A closed hi-hat cuts off the open one.</li>
-<li><b>Mixer:</b> the voices meet in the 808&rsquo;s output mixer, MASTER VOLUME at its end.</li></ul>
-<p>Because the circuit keeps running, a sound reacts to every control while it rings, just like the hardware.</p></div>'''),
+<li><b>Bass Drum:</b> a resonating filter (the 808&rsquo;s bridged-T network) struck by the trigger pulse. Its pitch starts
+high and drops in the first milliseconds for the punch, with a short click. TONE opens a low-pass filter, DECAY sets how long it rings.</li>
+<li><b>Snare Drum:</b> two resonators (about 172 and 340 Hz) and high-passed noise. TONE sets the mix of the two resonators, SNAPPY the noise.</li>
+<li><b>Toms:</b> a resonator whose pitch is higher while it is loud and slides down as it fades, with a little noise.
+<b>Congas</b> are higher, shorter and without noise.</li>
+<li><b>Rim Shot:</b> two resonators (455 and 1667 Hz) through a very short gate. <b>Claves:</b> one high resonator (2.4 kHz).</li>
+<li><b>Hand Clap:</b> filtered noise with three fast bursts and a reverb-like tail. <b>Maracas:</b> high-passed noise with a short envelope.</li>
+<li><b>Cow Bell:</b> two square-wave oscillators (540 and 800 Hz) through a band-pass filter with a fast-then-slow decay.</li>
+<li><b>Cymbal, Open and Closed Hi-Hat:</b> six square-wave oscillators that run all the time (205, 304, 370, 523, 540 and
+800 Hz), split into frequency bands. CY TONE moves the bands; the cymbal mixes a short bright band and longer lower ones.
+A closed hi-hat cuts off the open one.</li>
+<li><b>Accent:</b> accented steps play at full level; ACCENT sets how much softer the other steps are.</li></ul></div>'''),
         "ADVANCED COURSE", True)
 
     d.page(f'''<div class="topic" style="margin-bottom:6px"><div class="tt">Inside the Box</div><div class="tb">
 <p>Flip the POWER switch {C["A"]} to open the circuit board inside. UNIT808 keeps playing, so you can tune the sounds while the rhythm runs.
 Drag a trimmer up or down; a read-out shows its value; double-click returns it to its default. The 16 STEP keys on the lower board work just like the ones on the panel (writing, Shift / Alt, dragging, right-click menu) and their LEDs show the same state, with the 1st / 2nd PART lights beside them. To close the board, click the black POWER switch at top left or the power supply (the transformer on the left), or press Esc.
-These are the calibration trimmers of the voice board: the trims and part values that differ from one unit to the next.
-Each one acts live, even on a sound that is still ringing: turn KICK TUNE during a long kick and its tail glides to the new pitch.
-Trimmers are saved with your project and can be automated. Their factory values are those of the unit UNIT808 is modelled on.</p></div></div>
+Trimmers are saved with your project and can be automated. At their defaults UNIT808 sounds exactly like the UNIT 808 device.</p></div></div>
 <img class="board" src="{BOARD}">''', "ADVANCED COURSE", True)
     d.page(topic("The Trimmers", '''<div class="cols3">
-<table><tr><th>KICK</th><th>RANGE</th></tr><tr><td>TUNE</td><td>-12 &ndash; +12 semitones (0): scales C41 and C42 in the resonator</td></tr></table>
-<table><tr><th>METAL OSCILLATORS</th><th>RANGE</th></tr>
-<tr><td>COWBELL OSC 1</td><td>250 &ndash; 1200 Hz (558.30)</td></tr><tr><td>COWBELL OSC 2</td><td>350 &ndash; 1700 Hz (823.60)</td></tr>
-<tr><td>OSC 3</td><td>150 &ndash; 1000 Hz (486.39)</td></tr><tr><td>OSC 4</td><td>120 &ndash; 800 Hz (287.82)</td></tr>
-<tr><td>OSC 5</td><td>120 &ndash; 900 Hz (378.58)</td></tr><tr><td>OSC 6</td><td>80 &ndash; 700 Hz (198.83)</td></tr>
-<tr><td>DUTY</td><td>20 &ndash; 80 % (54.5): all six squares</td></tr></table>
-<table><tr><th>SNARE</th><th>RANGE</th></tr><tr><td>REVISION</td><td>Early / Late (Late): the &ldquo;portion changed&rdquo; part values</td></tr></table>
-<table><tr><th>CLAP</th><th>RANGE</th></tr><tr><td>OFFSET</td><td>0 &ndash; 100 % (37): the clap trim, bursts against tail</td></tr>
-<tr><td>REVISION</td><td>Early / Late (Late): the amplifier&rsquo;s values</td></tr></table>
-<table><tr><th>CLAVES</th><th>RANGE</th></tr><tr><td>FEEDBACK</td><td>490 &ndash; 1000 k&Omega; (500): R313, how long the claves ring</td></tr></table>
-<table><tr><th>NOISE</th><th>RANGE</th></tr><tr><td>LEVEL</td><td>20 &ndash; 350 mV RMS (190): snare, clap, maracas and tom noise</td></tr></table>
-<table><tr><th>TRIGGER</th><th>RANGE</th></tr><tr><td>WIDTH</td><td>0.5 &ndash; 2.0 ms (1.0): the common trigger pulse</td></tr></table>
-</div><p class="note">Factory values in brackets. Cow Bell Oscillators 1 and 2 also feed the cymbal and hi-hats, with Oscillators 3 to 6.
-Switching a REVISION while that voice sounds can give a short thump, as on a real circuit.</p>'''),
+<table><tr><th>BD</th><th>RANGE</th></tr><tr><td>TUNE</td><td>40 &ndash; 65 Hz (49.4)</td></tr><tr><td>CLICK</td><td>0 &ndash; 1 (0.01)</td></tr><tr><td>DRIVE</td><td>1 &ndash; 6 (1)</td></tr></table>
+<table><tr><th>SD</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.8 &ndash; 1.25 &times; (1)</td></tr><tr><td>DECAY</td><td>0.5 &ndash; 2 &times; (0.73)</td></tr></table>
+<table><tr><th>LT/LC &middot; MT/MC &middot; HT/HC</th><th>RANGE</th></tr><tr><td>TOM DECAY</td><td>20 &ndash; 400 ms (95 &middot; 70 &middot; 48)</td></tr>
+<tr><td>TOM BEND</td><td>0 &ndash; 0.5 (0.03): pitch drop</td></tr><tr><td>CONGA DECAY</td><td>20 &ndash; 400 ms (86 &middot; 44 &middot; 38)</td></tr><tr><td>CONGA BEND</td><td>0 &ndash; 0.5 (0.03)</td></tr></table>
+<table><tr><th>RS/CL</th><th>RANGE</th></tr><tr><td>RS TUNE, CL TUNE</td><td>0.7 &ndash; 1.4 &times; (1)</td></tr><tr><td>RS DECAY, CL DECAY</td><td>0.5 &ndash; 3 &times; (1)</td></tr></table>
+<table><tr><th>CP</th><th>RANGE</th></tr><tr><td>TONE</td><td>600 &ndash; 5000 Hz (1300)</td></tr><tr><td>DECAY</td><td>10 &ndash; 300 ms (60): the reverb tail</td></tr></table>
+<table><tr><th>CB</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.5 &ndash; 2 &times; (1)</td></tr><tr><td>DECAY</td><td>50 &ndash; 1200 ms (97)</td></tr></table>
+<table><tr><th>CY</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.5 &ndash; 2 &times; (1)</td></tr></table>
+<table><tr><th>HH (hi-hats)</th><th>RANGE</th></tr><tr><td>TUNE</td><td>0.5 &ndash; 2 &times; (1)</td></tr><tr><td>TONE</td><td>0.6 &ndash; 1.6 &times; (1)</td></tr><tr><td>CH DECAY</td><td>5 &ndash; 100 ms (24)</td></tr></table>
+</div><p class="note">Defaults in brackets. The congas use the panel&rsquo;s TUNING and LEVEL controls of their channel; their decay and bend are here.</p>'''),
         "ADVANCED COURSE", True)
 
     d.page(topic("Exporting MIDI", f'''<p>UNIT808 turns its rhythms into standard MIDI clips you can drop into your DAW or save as .mid files.</p>
@@ -520,8 +515,6 @@ the contact address, the Transistor Labs store, and a button that opens this man
 <tr><td>The STEP keys do not write</td><td>Writing works in 1st PART and 2nd PART. In the other modes the keys choose rhythms.</td></tr>
 <tr><td>A rhythm change waits</td><td>While playing, a new rhythm starts at the next bar (its indicator blinks).</td></tr>
 <tr><td>The wrong variation is written</td><td>Check the BASIC-VARIATION lever: A or B (AB writes A).</td></tr>
-<tr><td>Busy patterns use a lot of CPU</td><td>The circuit simulation is heavier than samples: raise the audio buffer size in your DAW, or freeze / bounce the track when the pattern is final.</td></tr>
-<tr><td>A song from 1.0 sounds different</td><td>1.1 has the new circuit engine; the 29 trimmers of 1.0 were replaced by the 14 calibration trimmers, which open at their factory values.</td></tr>
 <tr><td>An old song can&rsquo;t find UNIT808</td><td>1.0 is a new Transistor Labs plug-in: songs saved with 0.4.x need UNIT808 1.0 loaded again.</td></tr>
 <tr><td>A track does not play</td><td>MODE must be PLAY, and INSTRUMENT-SELECT must point at the track number.</td></tr></table>'''),
         "ADVANCED COURSE", True)
@@ -533,7 +526,7 @@ the contact address, the Transistor Labs store, and a button that opens this man
 <p><b>&#9675; Sound Source</b><br>BD, SD, LT/LC, MT/MC, HT/HC, RS/CL, CP/MA, CB, CY, OH, CH, AC</p>
 <p><b>&#9675; Controls</b><br>POWER, MODE, INSTRUMENT-SELECT, CLEAR, MEASURES AUTO FILL IN, SWING, FLAM, 22 sound controls,
 5 sound switches, MASTER VOLUME, BASIC-VARIATION, I/F-VARIATION, PRE-SCALE, START/STOP, STEP &times; 16, TAP</p>
-<p><b>&#9675; Trimmers</b><br>14 calibration trimmers (inside the box)</p>
+<p><b>&#9675; Trimmers</b><br>29 (inside the box)</p>
 <p><b>&#9675; Indicators</b><br>Step &times; 16 (red; blue = flam), Variation A/B, 1st/2nd Part, Clear, Mute/Solo on the 12 instrument labels</p>
 <p><b>&#9675; Timing</b><br>Follows the DAW&rsquo;s tempo and transport; Pre-Scale &times; 4; Swing</p>
 <p><b>&#9675; Formats</b><br>macOS: AU, VST3, application<br>Windows: VST3, application<br>Linux: VST3, LV2, application</p>
@@ -545,7 +538,7 @@ the contact address, the Transistor Labs store, and a button that opens this man
 <p><b>&#9675; macOS</b><br>macOS 10.13 or later, Apple silicon or Intel (universal). AU or VST3 host, or the standalone application.</p>
 <p><b>&#9675; Windows</b><br>Windows 10 or 11, 64-bit. VST3 host, or the standalone application.</p>
 <p><b>&#9675; Linux</b><br>64-bit x86 with a VST3 or LV2 host, or the standalone application (JACK or ALSA).</p>
-<p><b>&#9675; Computer</b><br>A multi-core CPU (Apple silicon, or a recent Intel / AMD): the circuit simulation spreads its voices over several cores and uses almost nothing while silent. 4 GB RAM. A screen of 1280 &times; 800 or larger.</p></div>'''), "ADVANCED COURSE", True)
+<p><b>&#9675; Computer</b><br>Any recent CPU: UNIT808 uses about 4% of one core at 48 kHz. 4 GB RAM. A screen of 1280 &times; 800 or larger.</p></div>'''), "ADVANCED COURSE", True)
 
     back(d, "Operation Manual")
     d.page(f'<img class="endbrand" src="{BRAND}">', cls="end")
@@ -554,13 +547,6 @@ the contact address, the Transistor Labs store, and a button that opens this man
 
 # ================================================================ UPDATE HISTORY
 HISTORY = [
-    ("1.1.0", "", [
-        "New sound engine: the Transistor 808 circuit engine. Every voice is a real-time simulation of the original circuits from the service schematics, so every sound reacts like the hardware, even while it rings",
-        "New board inside the box: the 14 calibration trimmers of the voice board (Kick Tune, the six metal oscillators and their duty, noise level, clap offset, snare and clap revisions, claves feedback, trigger width). They act live; Kick Tune glides smoothly",
-        "The 29 trimmers of 1.0 are gone with the old engine: songs saved with 1.0 open with the factory calibration",
-        "Panel knobs start at the circuit's settings; MIDI notes with velocity 100 or more play accented, as on the original",
-        "The voices render on several CPU cores, with audio-thread priority",
-    ]),
     ("1.0.2", "", [
         "Brighter, bigger STEP LEDs with a soft glow (front panel and inside the box); the running light glows the most",
         "Manual: new Writing Flams chapter",

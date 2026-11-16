@@ -332,9 +332,9 @@ int main (int argc, char** argv)
         check (pk > 0.05f, "MIDI notes play the sounds");
     }
 
-    // ---- the board inside: the 14 calibration trimmers of the circuit engine, and they change it live
+    // ---- the board inside: 29 trimmers, defaults = the device's sound, and they change it
     {
-        check (P::kNumTrims == 14, "14 calibration trimmers on the board");
+        check (P::kNumTrims == 29, "29 trimmers on the board");
         bool allThere = true;
         for (int i = 0; i < P::kNumTrims; ++i) allThere &= proc.apvts.getParameter (P::trimId (i).toRawUTF8()) != nullptr;
         check (allThere, "every trimmer is a parameter (automatable, saved with the project)");
@@ -349,15 +349,14 @@ int main (int argc, char** argv)
             return r;
         };
         const auto a = bdRender();
-        setParam ("c-bd-tune", 7.0f);
+        setParam ("t-bd-tune", 60.0f);
         const auto b = bdRender();
-        setParam ("c-bd-tune", 0.0f);
-        double pa = 0; for (float v : a) pa = juce::jmax (pa, (double) std::abs (v));
+        setParam ("t-bd-tune", 49.4f);
         double diff = 0; for (size_t i = 0; i < juce::jmin (a.size(), b.size()); ++i) diff = juce::jmax (diff, (double) std::abs (a[i] - b[i]));
-        check (pa > 0.01 && diff > 0.1 * pa, "KICK TUNE trimmer retunes the bass drum");
+        check (diff > 0.05, "BD TUNE trimmer changes the bass drum");
         const auto c = bdRender();
         double same = 0; for (size_t i = 0; i < juce::jmin (a.size(), c.size()); ++i) same = juce::jmax (same, (double) std::abs (a[i] - c[i]));
-        check (same < 0.05 * pa, "back at its factory value the bass drum sounds as before");
+        check (same < 1e-6, "back at its default the bass drum sounds as before");
     }
 
     // ---- state round trip

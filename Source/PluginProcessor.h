@@ -1,7 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "dsp/CircuitEngine.h"
+#include "dsp/Tr808Engine.h"
 #include "Sequencer.h"
 
 // UNIT808: the UNIT 808 sound engine behind a TR-808-style panel and sequencer.
@@ -18,7 +18,6 @@ public:
     void releaseResources() override {}
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-    void audioWorkgroupContextChanged (const juce::AudioWorkgroup&) override;
     using AudioProcessor::processBlock;
 
     juce::AudioProcessorEditor* createEditor() override;
@@ -27,7 +26,7 @@ public:
     bool acceptsMidi() const override  { return true; }
     bool producesMidi() const override { return false; }
     bool isMidiEffect() const override { return false; }
-    double getTailLengthSeconds() const override { return 5.0; }
+    double getTailLengthSeconds() const override { return 3.0; }
     int getNumPrograms() override { return 1; }
     int getCurrentProgram() override { return 0; }
     void setCurrentProgram (int) override {}
@@ -37,12 +36,11 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
-    // the 14 calibration trimmers on the board inside: parameter id "c-" + pad id (the 29 "t-" trimmers
-    // of v1.0 belonged to the old engine; old projects open with the factory calibration)
+    // the 29 trimmers on the board inside: parameter id "t-" + pad id
     struct TrimDef { const char* pad; const char* name; float lo, hi, def, skew; const char* unit; };
-    static constexpr int kNumTrims = unit808::NumCal;
+    static constexpr int kNumTrims = 29;
     static const TrimDef kTrims[kNumTrims];
-    static juce::String trimId (int i) { return juce::String ("c-") + kTrims[i].pad; }
+    static juce::String trimId (int i) { return juce::String ("t-") + kTrims[i].pad; }
     juce::AudioProcessorValueTreeState apvts;
 
     enum Mode { PatternClear = 0, FirstPart, SecondPart, ManualPlay, Play, Compose };
@@ -142,7 +140,7 @@ private:
     {
         std::atomic<float> *mode, *instrument, *autoFill, *basicVar, *fillVar, *preScale, *swing, *flam, *bpm;
         std::atomic<float> *mute[unit808::kNumRows] {}, *solo[unit808::kNumRows] {};
-        std::atomic<float> *trim[unit808::NumCal] {};
+        std::atomic<float> *trim[29] {};
         std::atomic<float> *knob[23] {};
         std::atomic<float> *sw[5] {};
     } raw {};

@@ -1785,7 +1785,7 @@ bool VoiceBoard::setProbe(int channel, const std::string &where)
 	using At = Impl::At;
 	// where each probe is: a node of a netlist (its block, the node) or a board signal
 	struct Want {
-		At at = At::Off;
+		Impl::At at = Impl::At::Off;
 		Block *block = nullptr;
 		int node = -1, signal = -1, job = -1;
 	};
